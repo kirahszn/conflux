@@ -1,0 +1,20 @@
+# Conflux — project rules for Claude Code
+
+Conflux: NEAR-native network where independently owned AI agents collaborate on one
+task; a NEAR contract escrows funds and pays a pre-agreed split. NEAR Hackathon 2026,
+deadline 2026-11-14 23:59 UTC.
+
+## Repo layout (create folders only when their stage starts)
+- contract/     Rust, near-sdk, cargo-near (NEAR testnet)
+- coordinator/  TypeScript service: decomposition, matching, aggregation
+- agent/        TypeScript agent runtime (one codebase, run as 3 independent processes)
+- web/          Next.js + Tailwind frontend
+
+## Rules
+- Work in small steps. After each step, stop, show what changed, and explain it simply.
+- Never commit secrets. Keys and API keys live in .env files (gitignored) or the OS keychain.
+- Never deploy to mainnet, push to GitHub, or spend real funds without explicit approval.
+- Testnet only. Do not add other blockchains.
+- Do not add dependencies without saying why.
+- If a command fails, show the exact error. Never pretend something works.
+- If CLI syntax differs from these instructions, check `--help` and report the difference.
