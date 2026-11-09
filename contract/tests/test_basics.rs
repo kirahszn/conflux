@@ -18,40 +18,22 @@ async fn test_basics_on(contract_wasm: Vec<u8>) -> testresult::TestResult<()> {
             .unwrap(),
     )?;
 
-    // Deploy the contract WITHOUT an init call (Default provides the initial state)
+    // Deploy and initialise with alice as the coordinator
     near_api::Contract::deploy(contract.account_id().clone())
         .use_code(contract_wasm)
-        .without_init_call()
+        .with_init_call("init", json!({"coordinator": alice.account_id()}))?
         .with_signer(signer.clone())
         .send_to(&sandbox_network)
         .await?
         .assert_success();
 
-    // Default greeting
-    let greeting: String = contract
-        .call_function("get_greeting", ())
+    let coordinator: String = contract
+        .call_function("get_coordinator", ())
         .read_only()
         .fetch_from(&sandbox_network)
         .await?
         .data;
-    assert_eq!(greeting, "Hello");
-
-    // Alice sets a new greeting
-    contract
-        .call_function("set_greeting", json!({"greeting": "Hello World!"}))
-        .transaction()
-        .with_signer(alice.account_id().clone(), signer.clone())
-        .send_to(&sandbox_network)
-        .await?
-        .assert_success();
-
-    let greeting: String = contract
-        .call_function("get_greeting", ())
-        .read_only()
-        .fetch_from(&sandbox_network)
-        .await?
-        .data;
-    assert_eq!(greeting, "Hello World!");
+    assert_eq!(coordinator, alice.account_id().to_string());
 
     Ok(())
 }
