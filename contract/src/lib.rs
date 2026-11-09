@@ -1,8 +1,9 @@
-//! Conflux escrow contract — Stage 2A.
+//! Conflux escrow contract — Stage 2A + 2B + 3.1.
 //!
 //! Rules live in docs/CONTRACT.md; rule codes (A1, T3, S3, ...) are referenced
-//! in comments below. Stage 2A covers: init, agent registration, task creation,
-//! cancellation, and views. Assign / submit / approve / expire come later.
+//! in comments below. 2A: init, agent registration, task creation, cancel,
+//! views. 2B: assign, submit, approve, release, expire. 3.1: agent name and
+//! description, task title, coordinator's final report hash.
 
 use near_sdk::json_types::U64;
 use near_sdk::store::{IterableMap, Vector};
@@ -17,6 +18,10 @@ pub const MAX_CAPABILITY_LEN: usize = 32;
 pub const MAX_SLOTS: usize = 10;
 pub const MAX_ROLE_LEN: usize = 32;
 pub const MAX_PROOF_REF_LEN: usize = 256;
+/// A7 / A8 / T7 — counted in Unicode characters (T8).
+pub const MAX_AGENT_NAME_CHARS: usize = 64;
+pub const MAX_AGENT_DESCRIPTION_CHARS: usize = 280;
+pub const MAX_TITLE_CHARS: usize = 100;
 /// P2: how long after the last submission anyone may release payment (24h, ns).
 pub const REVIEW_PERIOD: u64 = 24 * 60 * 60 * 1_000_000_000;
 pub const DEFAULT_PAGE_LIMIT: u32 = 20;
@@ -29,6 +34,10 @@ pub const MAX_PAGE_LIMIT: u32 = 50;
 pub struct Agent {
     pub agent_id: AccountId,
     pub owner: AccountId,
+    /// A7: 1–64 chars. Public.
+    pub name: String,
+    /// A8: 0–280 chars. Public.
+    pub description: String,
     pub capabilities: Vec<String>,
     pub active: bool,
     pub registered_at: U64,
@@ -70,6 +79,8 @@ pub enum TaskStatus {
 pub struct Task {
     pub id: u64,
     pub creator: AccountId,
+    /// T7: 1–100 chars, stored in plain text — public.
+    pub title: String,
     pub description_hash: String,
     pub slots: Vec<Slot>,
     pub coordinator_fee: NearToken,
@@ -81,6 +92,8 @@ pub struct Task {
     pub deadline: U64,
     /// Set when the last slot is submitted (U6).
     pub submitted_at: Option<U64>,
+    /// R1–R5: set once by the coordinator while Submitted. Required by approve (P1).
+    pub final_report_hash: Option<String>,
 }
 
 #[near]
@@ -118,7 +131,13 @@ impl Contract {
 
     /// Register an agent owned by the caller. Caller pays storage (S1, S2).
     #[payable]
-    pub fn register_agent(&mut self, agent_id: AccountId, capabilities: Vec<String>) -> Agent {
+    pub fn register_agent(
+        &mut self,
+        agent_id: AccountId,
+        name: String,
+        description: String,
+        capabilities: Vec<String>,
+    ) -> Agent {
         let owner = env::predecessor_account_id();
 
         // A1: agent_id must be a sub-account of the caller.
@@ -131,6 +150,16 @@ impl Contract {
         require!(
             !self.agents.contains_key(&agent_id),
             "agent already registered"
+        );
+        // A7, A8 (T8: counted in characters).
+        let name_chars = name.chars().count();
+        require!(
+            (1..=MAX_AGENT_NAME_CHARS).contains(&name_chars),
+            "name must be 1-64 chars"
+        );
+        require!(
+            description.chars().count() <= MAX_AGENT_DESCRIPTION_CHARS,
+            "description must be at most 280 chars"
         );
         // A5: capability limits.
         require!(
@@ -147,6 +176,8 @@ impl Contract {
         let agent = Agent {
             agent_id: agent_id.clone(),
             owner: owner.clone(), // A2
+            name,
+            description,
             capabilities,
             active: true, // A4
             registered_at: U64(env::block_timestamp()),
@@ -194,6 +225,7 @@ impl Contract {
     #[payable]
     pub fn create_task(
         &mut self,
+        title: String,
         description_hash: String,
         slots: Vec<SlotInput>,
         coordinator_fee: NearToken,
@@ -201,6 +233,12 @@ impl Contract {
     ) -> Task {
         let creator = env::predecessor_account_id();
 
+        // T7: public title, 1–100 chars (T8: counted in characters).
+        let title_chars = title.chars().count();
+        require!(
+            (1..=MAX_TITLE_CHARS).contains(&title_chars),
+            "title must be 1-100 chars"
+        );
         // T1: 64-char lowercase hex (SHA-256). Never the full text.
         require!(
             is_hex64(&description_hash),
@@ -234,6 +272,7 @@ impl Contract {
         let task = Task {
             id,
             creator: creator.clone(),
+            title,
             description_hash,
             slots: slots
                 .into_iter()
@@ -252,6 +291,7 @@ impl Contract {
             created_at: U64(env::block_timestamp()),
             deadline,
             submitted_at: None,
+            final_report_hash: None,
         };
 
         let before = env::storage_usage();
@@ -378,7 +418,28 @@ impl Contract {
         task.clone()
     }
 
-    /// P1, P3: creator approves a fully submitted task.
+    /// R1–R5: coordinator records the hash of the aggregated final report.
+    /// Once per task, only while Submitted. No money moves, status unchanged.
+    pub fn set_final_report(&mut self, task_id: u64, report_hash: String) -> Task {
+        require!(
+            env::predecessor_account_id() == self.coordinator,
+            "only the coordinator can set the final report"
+        ); // R1
+        require!(
+            is_hex64(&report_hash),
+            "report_hash must be 64 lowercase hex chars"
+        ); // R3
+        let task = self.task_mut(task_id);
+        require!(
+            task.status == TaskStatus::Submitted,
+            "task is not submitted"
+        ); // R2
+        require!(task.final_report_hash.is_none(), "final report already set"); // R4
+        task.final_report_hash = Some(report_hash); // R5
+        task.clone()
+    }
+
+    /// P1, P3: creator approves a fully submitted task that has a final report.
     #[payable]
     pub fn approve_task(&mut self, task_id: u64) -> Task {
         assert_one_yocto(); // M1
@@ -389,10 +450,12 @@ impl Contract {
             task.status == TaskStatus::Submitted,
             "task is not submitted"
         );
+        require!(task.final_report_hash.is_some(), "final report not set"); // P1 (3.1)
         self.settle(task_id)
     }
 
     /// P2, P3: anyone releases payment once the review period has passed.
+    /// Does not need a final report (P2).
     #[payable]
     pub fn release_payment(&mut self, task_id: u64) -> Task {
         assert_one_yocto(); // M1
@@ -568,6 +631,12 @@ mod tests {
     fn hash() -> String {
         "ab".repeat(32)
     }
+    fn name() -> String {
+        "Test agent".into()
+    }
+    fn title() -> String {
+        "Market report on NEAR AI agents".into()
+    }
 
     /// Set the caller and attached deposit for the next contract call.
     fn ctx(caller: &str, deposit: NearToken) {
@@ -624,7 +693,7 @@ mod tests {
     /// alice creates a valid task: slots 2 + 3 NEAR, fee 1 NEAR, 1 NEAR extra for storage.
     fn alice_creates_task(c: &mut Contract) -> Task {
         ctx("alice.testnet", near(7));
-        c.create_task(hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR))
+        c.create_task(title(), hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR))
     }
 
     // ---- init (I1) -------------------------------------------------------
@@ -641,7 +710,12 @@ mod tests {
     fn a1_a2_a4_register_valid_subaccount() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        let a = c.register_agent(acc("writer.alice.testnet"), vec!["research".into()]);
+        let a = c.register_agent(
+            acc("writer.alice.testnet"),
+            name(),
+            String::new(),
+            vec!["research".into()],
+        );
         assert_eq!(a.owner, acc("alice.testnet")); // A2
         assert!(a.active); // A4
         assert_eq!(c.get_agent(acc("writer.alice.testnet")), Some(a));
@@ -651,7 +725,7 @@ mod tests {
     fn a1_register_deeper_subaccount_ok() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("x.writer.alice.testnet"), vec![]);
+        c.register_agent(acc("x.writer.alice.testnet"), name(), String::new(), vec![]);
     }
 
     #[test]
@@ -659,7 +733,7 @@ mod tests {
     fn a1_register_other_owners_subaccount_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.bob.testnet"), vec![]);
+        c.register_agent(acc("writer.bob.testnet"), name(), String::new(), vec![]);
     }
 
     #[test]
@@ -667,7 +741,7 @@ mod tests {
     fn a1_register_self_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("alice.testnet"), vec![]);
+        c.register_agent(acc("alice.testnet"), name(), String::new(), vec![]);
     }
 
     #[test]
@@ -676,7 +750,7 @@ mod tests {
         // "writer.malice.testnet" ends with "alice.testnet" but not ".alice.testnet"
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.malice.testnet"), vec![]);
+        c.register_agent(acc("writer.malice.testnet"), name(), String::new(), vec![]);
     }
 
     #[test]
@@ -684,9 +758,9 @@ mod tests {
     fn a3_register_duplicate_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec![]);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), vec![]);
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec![]);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), vec![]);
     }
 
     #[test]
@@ -695,7 +769,7 @@ mod tests {
         let mut c = setup();
         ctx("alice.testnet", near(1));
         let caps = (0..11).map(|i| format!("c{i}")).collect();
-        c.register_agent(acc("writer.alice.testnet"), caps);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), caps);
     }
 
     #[test]
@@ -703,7 +777,12 @@ mod tests {
     fn a5_register_capability_too_long_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec!["x".repeat(33)]);
+        c.register_agent(
+            acc("writer.alice.testnet"),
+            name(),
+            String::new(),
+            vec!["x".repeat(33)],
+        );
     }
 
     #[test]
@@ -711,7 +790,12 @@ mod tests {
     fn a5_register_empty_capability_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec!["".into()]);
+        c.register_agent(
+            acc("writer.alice.testnet"),
+            name(),
+            String::new(),
+            vec!["".into()],
+        );
     }
 
     #[test]
@@ -719,7 +803,7 @@ mod tests {
         let mut c = setup();
         ctx("alice.testnet", near(1));
         let caps = (0..10).map(|_| "x".repeat(32)).collect();
-        c.register_agent(acc("writer.alice.testnet"), caps);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), caps);
     }
 
     #[test]
@@ -727,7 +811,12 @@ mod tests {
         let mut c = setup();
         ctx("alice.testnet", near(1));
         let before = env::storage_usage();
-        c.register_agent(acc("writer.alice.testnet"), vec!["research".into()]);
+        c.register_agent(
+            acc("writer.alice.testnet"),
+            name(),
+            String::new(),
+            vec!["research".into()],
+        );
         let bytes = env::storage_usage() - before;
         let cost = env::storage_byte_cost().saturating_mul(bytes as u128);
         assert!(bytes > 0);
@@ -742,7 +831,7 @@ mod tests {
     fn s2_register_without_storage_deposit_fails() {
         let mut c = setup();
         ctx("alice.testnet", NearToken::from_yoctonear(0));
-        c.register_agent(acc("writer.alice.testnet"), vec![]);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), vec![]);
     }
 
     // ---- set_agent_active ------------------------------------------------
@@ -751,7 +840,7 @@ mod tests {
     fn a4_owner_can_set_active() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec![]);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), vec![]);
         ctx("alice.testnet", NearToken::from_yoctonear(0));
         c.set_agent_active(acc("writer.alice.testnet"), false);
         assert!(!c.get_agent(acc("writer.alice.testnet")).unwrap().active);
@@ -764,7 +853,7 @@ mod tests {
     fn a4_non_owner_cannot_set_active() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.register_agent(acc("writer.alice.testnet"), vec![]);
+        c.register_agent(acc("writer.alice.testnet"), name(), String::new(), vec![]);
         ctx("bob.testnet", NearToken::from_yoctonear(0));
         c.set_agent_active(acc("writer.alice.testnet"), false);
     }
@@ -803,7 +892,7 @@ mod tests {
         let mut c = setup();
         ctx("alice.testnet", near(7));
         let before = env::storage_usage();
-        let t = c.create_task(hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
+        let t = c.create_task(title(), hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
         let bytes = env::storage_usage() - before;
         let storage = env::storage_byte_cost().saturating_mul(bytes as u128);
         // 7 attached - 6 escrow - storage = refund
@@ -816,7 +905,7 @@ mod tests {
     fn t2_zero_fee_ok() {
         let mut c = setup();
         ctx("alice.testnet", near(2));
-        let t = c.create_task(hash(), slots(&[1]), near(0), U64(NOW + HOUR));
+        let t = c.create_task(title(), hash(), slots(&[1]), near(0), U64(NOW + HOUR));
         assert_eq!(t.escrow, near(1));
     }
 
@@ -825,7 +914,7 @@ mod tests {
     fn s3_deposit_equal_to_escrow_but_no_storage_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(6));
-        c.create_task(hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
+        c.create_task(title(), hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
     }
 
     #[test]
@@ -833,7 +922,7 @@ mod tests {
     fn s3_deposit_below_escrow_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(1));
-        c.create_task(hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
+        c.create_task(title(), hash(), slots(&[2, 3]), near(1), U64(NOW + HOUR));
     }
 
     #[test]
@@ -841,7 +930,7 @@ mod tests {
     fn t3_zero_reward_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task(hash(), slots(&[2, 0]), near(1), U64(NOW + HOUR));
+        c.create_task(title(), hash(), slots(&[2, 0]), near(1), U64(NOW + HOUR));
     }
 
     #[test]
@@ -853,7 +942,13 @@ mod tests {
             role: "r".into(),
             reward: NearToken::from_yoctonear(u128::MAX),
         }];
-        c.create_task(hash(), s, NearToken::from_yoctonear(1), U64(NOW + HOUR));
+        c.create_task(
+            title(),
+            hash(),
+            s,
+            NearToken::from_yoctonear(1),
+            U64(NOW + HOUR),
+        );
     }
 
     #[test]
@@ -861,7 +956,7 @@ mod tests {
     fn t6_past_deadline_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task(hash(), slots(&[1]), near(0), U64(NOW - HOUR));
+        c.create_task(title(), hash(), slots(&[1]), near(0), U64(NOW - HOUR));
     }
 
     #[test]
@@ -869,7 +964,7 @@ mod tests {
     fn t6_deadline_equal_to_now_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task(hash(), slots(&[1]), near(0), U64(NOW));
+        c.create_task(title(), hash(), slots(&[1]), near(0), U64(NOW));
     }
 
     #[test]
@@ -877,7 +972,13 @@ mod tests {
     fn t1_short_hash_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task("ab".repeat(31), slots(&[1]), near(0), U64(NOW + HOUR));
+        c.create_task(
+            title(),
+            "ab".repeat(31),
+            slots(&[1]),
+            near(0),
+            U64(NOW + HOUR),
+        );
     }
 
     #[test]
@@ -885,7 +986,13 @@ mod tests {
     fn t1_uppercase_hash_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task("AB".repeat(32), slots(&[1]), near(0), U64(NOW + HOUR));
+        c.create_task(
+            title(),
+            "AB".repeat(32),
+            slots(&[1]),
+            near(0),
+            U64(NOW + HOUR),
+        );
     }
 
     #[test]
@@ -895,7 +1002,7 @@ mod tests {
         ctx("alice.testnet", near(10));
         let text = "Write a market report on NEAR AI agents, 3 pages, sources cited.";
         assert_eq!(text.len(), 64);
-        c.create_task(text.into(), slots(&[1]), near(0), U64(NOW + HOUR));
+        c.create_task(title(), text.into(), slots(&[1]), near(0), U64(NOW + HOUR));
     }
 
     #[test]
@@ -903,7 +1010,7 @@ mod tests {
     fn t2_zero_slots_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(10));
-        c.create_task(hash(), vec![], near(1), U64(NOW + HOUR));
+        c.create_task(title(), hash(), vec![], near(1), U64(NOW + HOUR));
     }
 
     #[test]
@@ -911,14 +1018,14 @@ mod tests {
     fn t2_eleven_slots_fails() {
         let mut c = setup();
         ctx("alice.testnet", near(20));
-        c.create_task(hash(), slots(&[1; 11]), near(0), U64(NOW + HOUR));
+        c.create_task(title(), hash(), slots(&[1; 11]), near(0), U64(NOW + HOUR));
     }
 
     #[test]
     fn t2_ten_slots_ok() {
         let mut c = setup();
         ctx("alice.testnet", near(20));
-        let t = c.create_task(hash(), slots(&[1; 10]), near(0), U64(NOW + HOUR));
+        let t = c.create_task(title(), hash(), slots(&[1; 10]), near(0), U64(NOW + HOUR));
         assert_eq!(t.slots.len(), 10);
         assert_eq!(t.escrow, near(10));
     }
@@ -932,7 +1039,7 @@ mod tests {
             role: "".into(),
             reward: near(1),
         }];
-        c.create_task(hash(), s, near(0), U64(NOW + HOUR));
+        c.create_task(title(), hash(), s, near(0), U64(NOW + HOUR));
     }
 
     // ---- cancel_task -----------------------------------------------------
@@ -1011,7 +1118,12 @@ mod tests {
         let names = ["a", "b", "c", "d", "e"];
         for n in names {
             ctx("alice.testnet", near(1));
-            c.register_agent(acc(&format!("{n}.alice.testnet")), vec![]);
+            c.register_agent(
+                acc(&format!("{n}.alice.testnet")),
+                name(),
+                String::new(),
+                vec![],
+            );
         }
         let ids = |v: Vec<Agent>| -> Vec<String> {
             v.into_iter().map(|a| a.agent_id.to_string()).collect()
@@ -1050,7 +1162,7 @@ mod tests {
         let mut c = setup();
         for _ in 0..(MAX_PAGE_LIMIT + 5) {
             ctx("alice.testnet", near(3));
-            c.create_task(hash(), slots(&[1]), near(0), U64(NOW + HOUR));
+            c.create_task(title(), hash(), slots(&[1]), near(0), U64(NOW + HOUR));
         }
         assert_eq!(c.get_tasks(None, Some(1000)).len(), MAX_PAGE_LIMIT as usize);
         assert_eq!(c.get_tasks(None, None).len(), DEFAULT_PAGE_LIMIT as usize);
@@ -1079,13 +1191,13 @@ mod tests {
             ("carol.testnet", "res.carol.testnet", "research"),
         ] {
             ctx(owner, near(1));
-            c.register_agent(acc(id), vec![cap.into()]);
+            c.register_agent(acc(id), name(), String::new(), vec![cap.into()]);
         }
         ctx("alice.testnet", near(7));
         let mut s = slots(&[2, 3]);
         s[0].role = "research".into();
         s[1].role = "writing".into();
-        c.create_task(hash(), s, near(1), U64(DEADLINE));
+        c.create_task(title(), hash(), s, near(1), U64(DEADLINE));
         c
     }
 
@@ -1107,6 +1219,16 @@ mod tests {
         submit(&mut c, 0, "res.bob.testnet");
         submit(&mut c, 1, "wri.bob.testnet");
         c
+    }
+
+    fn fhash() -> String {
+        "ef".repeat(32)
+    }
+
+    /// Coordinator sets the final report on a task (R1–R5).
+    fn report(c: &mut Contract, task_id: u64) -> Task {
+        ctx("coord.testnet", yocto(0));
+        c.set_final_report(task_id, fhash())
     }
 
     fn total_out() -> NearToken {
@@ -1236,6 +1358,8 @@ mod tests {
         ctx("bob.testnet", near(1));
         c.register_agent(
             acc("multi.bob.testnet"),
+            name(),
+            String::new(),
             vec!["research".into(), "writing".into()],
         );
         assign(&mut c, 0, "multi.bob.testnet");
@@ -1364,6 +1488,7 @@ mod tests {
         c.set_agent_active(acc("res.bob.testnet"), false);
         submit(&mut c, 0, "res.bob.testnet");
         submit(&mut c, 1, "wri.bob.testnet");
+        report(&mut c, 0);
         ctx("alice.testnet", yocto(1));
         c.approve_task(0);
         assert_eq!(completed(&c, "res.bob.testnet"), 1);
@@ -1374,6 +1499,7 @@ mod tests {
     #[test]
     fn p1_p3_approve_pays_owners_and_coordinator() {
         let mut c = submitted_world();
+        report(&mut c, 0);
         ctx("alice.testnet", yocto(1));
         let t = c.approve_task(0);
         assert_eq!(t.status, TaskStatus::Settled);
@@ -1399,6 +1525,7 @@ mod tests {
         assign(&mut c, 1, "wri.bob.testnet");
         submit(&mut c, 0, "res.carol.testnet");
         submit(&mut c, 1, "wri.bob.testnet");
+        report(&mut c, 0);
         ctx("alice.testnet", yocto(1));
         c.approve_task(0);
         assert_eq!(
@@ -1417,11 +1544,12 @@ mod tests {
         ctx("alice.testnet", near(2));
         let mut s = slots(&[1]);
         s[0].role = "research".into();
-        c.create_task(hash(), s, near(0), U64(DEADLINE)); // task 1
+        c.create_task(title(), hash(), s, near(0), U64(DEADLINE)); // task 1
         ctx("coord.testnet", yocto(0));
         c.assign_slot(1, 0, acc("res.bob.testnet"));
         ctx("res.bob.testnet", yocto(0));
         c.submit_contribution(1, 0, rhash(), None);
+        report(&mut c, 1);
         ctx("alice.testnet", yocto(1));
         c.approve_task(1);
         assert_eq!(transfers(), vec![(acc("bob.testnet"), near(1))]);
@@ -1447,6 +1575,7 @@ mod tests {
     #[should_panic(expected = "task is not submitted")]
     fn p1_double_approve_fails() {
         let mut c = submitted_world();
+        report(&mut c, 0);
         ctx("alice.testnet", yocto(1));
         c.approve_task(0);
         ctx("alice.testnet", yocto(1));
@@ -1513,6 +1642,7 @@ mod tests {
     #[should_panic(expected = "task is not submitted")]
     fn p2_release_after_approve_fails() {
         let mut c = submitted_world();
+        report(&mut c, 0);
         ctx("alice.testnet", yocto(1));
         c.approve_task(0);
         ctx_at("dave.testnet", yocto(1), NOW + REVIEW_PERIOD);
@@ -1656,6 +1786,9 @@ mod tests {
                 if mask & 2 != 0 {
                     submit(&mut c, 1, "wri.bob.testnet");
                 }
+                if mask == 3 {
+                    report(&mut c, 0); // P1: approve needs a final report
+                }
                 let escrow = c.get_task(0).unwrap().escrow;
                 let first = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     run(&mut c, path, t);
@@ -1679,5 +1812,238 @@ mod tests {
                 }
             }
         }
+    }
+
+    // ======================================================================
+    // Stage 3.1
+    // ======================================================================
+
+    // ---- agent name / description (A7, A8, A9, T8) ------------------------
+
+    fn register_named(c: &mut Contract, name: String, description: String) -> Agent {
+        ctx("alice.testnet", near(1));
+        c.register_agent(acc("writer.alice.testnet"), name, description, vec![])
+    }
+
+    #[test]
+    fn a9_name_and_description_shown_in_views() {
+        let mut c = setup();
+        let a = register_named(&mut c, "Writer Bot".into(), "Writes reports.".into());
+        assert_eq!(a.name, "Writer Bot");
+        assert_eq!(a.description, "Writes reports.");
+        let got = c.get_agent(acc("writer.alice.testnet")).unwrap();
+        assert_eq!(
+            (got.name.as_str(), got.description.as_str()),
+            ("Writer Bot", "Writes reports.")
+        );
+        let all = c.get_agents(None, None);
+        assert_eq!(all[0].name, "Writer Bot");
+        assert_eq!(all[0].description, "Writes reports.");
+    }
+
+    #[test]
+    #[should_panic(expected = "name must be 1-64 chars")]
+    fn a7_empty_name_fails() {
+        let mut c = setup();
+        register_named(&mut c, String::new(), String::new());
+    }
+
+    #[test]
+    #[should_panic(expected = "name must be 1-64 chars")]
+    fn a7_name_65_chars_fails() {
+        let mut c = setup();
+        register_named(&mut c, "n".repeat(65), String::new());
+    }
+
+    #[test]
+    fn a7_name_1_and_64_chars_ok() {
+        let mut c = setup();
+        register_named(&mut c, "n".into(), String::new());
+        ctx("alice.testnet", near(1));
+        c.register_agent(
+            acc("b.alice.testnet"),
+            "n".repeat(64),
+            String::new(),
+            vec![],
+        );
+    }
+
+    #[test]
+    fn t8_name_counts_characters_not_bytes() {
+        // 64 × "é" = 64 chars but 128 bytes: allowed.
+        let mut c = setup();
+        let a = register_named(&mut c, "é".repeat(64), String::new());
+        assert_eq!(a.name.len(), 128);
+    }
+
+    #[test]
+    #[should_panic(expected = "name must be 1-64 chars")]
+    fn t8_name_65_multibyte_chars_fails() {
+        let mut c = setup();
+        register_named(&mut c, "é".repeat(65), String::new());
+    }
+
+    #[test]
+    fn a8_empty_and_280_char_description_ok() {
+        let mut c = setup();
+        let a = register_named(&mut c, name(), String::new());
+        assert_eq!(a.description, "");
+        ctx("alice.testnet", near(1));
+        c.register_agent(acc("b.alice.testnet"), name(), "d".repeat(280), vec![]);
+    }
+
+    #[test]
+    #[should_panic(expected = "description must be at most 280 chars")]
+    fn a8_description_281_chars_fails() {
+        let mut c = setup();
+        register_named(&mut c, name(), "d".repeat(281));
+    }
+
+    // ---- task title (T7, T8) ----------------------------------------------
+
+    fn create_titled(c: &mut Contract, title: String) -> Task {
+        ctx("alice.testnet", near(3));
+        c.create_task(title, hash(), slots(&[1]), near(0), U64(NOW + HOUR))
+    }
+
+    #[test]
+    fn t7_title_stored_and_shown_in_views() {
+        let mut c = setup();
+        let t = create_titled(&mut c, "Compare NEAR wallets".into());
+        assert_eq!(t.title, "Compare NEAR wallets");
+        assert_eq!(c.get_task(0).unwrap().title, "Compare NEAR wallets");
+        assert_eq!(c.get_tasks(None, None)[0].title, "Compare NEAR wallets");
+        assert_eq!(t.final_report_hash, None);
+    }
+
+    #[test]
+    #[should_panic(expected = "title must be 1-100 chars")]
+    fn t7_empty_title_fails() {
+        let mut c = setup();
+        create_titled(&mut c, String::new());
+    }
+
+    #[test]
+    #[should_panic(expected = "title must be 1-100 chars")]
+    fn t7_title_101_chars_fails() {
+        let mut c = setup();
+        create_titled(&mut c, "t".repeat(101));
+    }
+
+    #[test]
+    fn t7_title_1_and_100_chars_ok() {
+        let mut c = setup();
+        create_titled(&mut c, "t".into());
+        create_titled(&mut c, "t".repeat(100));
+        create_titled(&mut c, "é".repeat(100)); // T8: 200 bytes, 100 chars
+    }
+
+    // ---- set_final_report (R1–R5) -------------------------------------------
+
+    #[test]
+    fn r5_coordinator_sets_report_status_unchanged_no_transfers() {
+        let mut c = submitted_world();
+        let t = report(&mut c, 0);
+        assert_eq!(t.final_report_hash, Some(fhash()));
+        assert_eq!(t.status, TaskStatus::Submitted);
+        assert_eq!(c.get_task(0).unwrap().final_report_hash, Some(fhash()));
+        assert!(transfers().is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected = "only the coordinator can set the final report")]
+    fn r1_creator_cannot_set_report() {
+        let mut c = submitted_world();
+        ctx("alice.testnet", yocto(0));
+        c.set_final_report(0, fhash());
+    }
+
+    #[test]
+    #[should_panic(expected = "only the coordinator can set the final report")]
+    fn r1_agent_cannot_set_report() {
+        let mut c = submitted_world();
+        ctx("res.bob.testnet", yocto(0));
+        c.set_final_report(0, fhash());
+    }
+
+    #[test]
+    #[should_panic(expected = "task is not submitted")]
+    fn r2_report_on_funded_task_fails() {
+        let mut c = world();
+        report(&mut c, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "task is not submitted")]
+    fn r2_report_before_all_slots_submitted_fails() {
+        let mut c = world();
+        assign(&mut c, 0, "res.bob.testnet");
+        assign(&mut c, 1, "wri.bob.testnet");
+        submit(&mut c, 0, "res.bob.testnet"); // InProgress
+        report(&mut c, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "task is not submitted")]
+    fn r2_report_after_settled_fails() {
+        let mut c = submitted_world();
+        ctx_at("dave.testnet", yocto(1), NOW + REVIEW_PERIOD);
+        c.release_payment(0);
+        report(&mut c, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "report_hash must be 64 lowercase hex chars")]
+    fn r3_bad_report_hash_fails() {
+        let mut c = submitted_world();
+        ctx("coord.testnet", yocto(0));
+        c.set_final_report(0, "EF".repeat(32));
+    }
+
+    #[test]
+    #[should_panic(expected = "final report already set")]
+    fn r4_report_twice_fails() {
+        let mut c = submitted_world();
+        report(&mut c, 0);
+        ctx("coord.testnet", yocto(0));
+        c.set_final_report(0, "01".repeat(32));
+    }
+
+    #[test]
+    #[should_panic(expected = "task not found")]
+    fn r_report_unknown_task_fails() {
+        let mut c = submitted_world();
+        report(&mut c, 9);
+    }
+
+    // ---- approve / release with and without a report (P1, P2) -------------
+
+    #[test]
+    #[should_panic(expected = "final report not set")]
+    fn p1_approve_without_report_fails() {
+        let mut c = submitted_world();
+        ctx("alice.testnet", yocto(1));
+        c.approve_task(0);
+    }
+
+    #[test]
+    fn p1_approve_with_report_succeeds() {
+        let mut c = submitted_world();
+        report(&mut c, 0);
+        ctx("alice.testnet", yocto(1));
+        let t = c.approve_task(0);
+        assert_eq!(t.status, TaskStatus::Settled);
+        assert_eq!(t.final_report_hash, Some(fhash()));
+        assert_eq!(total_out(), t.escrow); // X1
+    }
+
+    #[test]
+    fn p2_release_works_without_report() {
+        let mut c = submitted_world();
+        ctx_at("dave.testnet", yocto(1), NOW + REVIEW_PERIOD);
+        let t = c.release_payment(0);
+        assert_eq!(t.status, TaskStatus::Settled);
+        assert_eq!(t.final_report_hash, None);
+        assert_eq!(total_out(), t.escrow); // X1
     }
 }
