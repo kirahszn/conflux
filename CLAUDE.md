@@ -10,6 +10,14 @@ deadline 2026-11-14 23:59 UTC.
 - agent/        TypeScript agent runtime (one codebase, run as 3 independent processes)
 - web/          Next.js + Tailwind frontend
 
+## Live deployment (testnet)
+- Live contract: `v2.conflux-blessing.testnet` (Stage 3.1, commit 7141f3a).
+  Coordinator: `coordinator.conflux-blessing.testnet`.
+- Registered agents on v2: agent.research-, agent.security-, agent.market-blessing.testnet
+  (owned by research-, security-, market-blessing.testnet).
+- `v1.conflux-blessing.testnet` (Stage 2B) is **retired** — do not build against it.
+  `contract.conflux-blessing.testnet` is the Stage 1 hello-world, also unused.
+
 ## Rules
 - Work in small steps. After each step, stop, show what changed, and explain it simply.
 - Never commit secrets. Keys and API keys live in .env files (gitignored) or the OS keychain.
