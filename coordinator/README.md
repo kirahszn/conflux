@@ -10,8 +10,9 @@ npm install
 npm start                 # API on :8787 + watcher every 10s
 npm run typecheck
 ```
-The signing key is read from `~/.near-credentials/testnet/<COORDINATOR_ID>.json`
-(NEAR CLI legacy keychain). It is never stored in `.env` or logged.
+The signing key comes from `COORDINATOR_PRIVATE_KEY` (env), else `~/.near-credentials/testnet/<COORDINATOR_ID>.json`
+(NEAR CLI legacy keychain). Keys are never logged, only their source. Deployment (Railway): see `/DEPLOY.md`.
+`GET /health` reports the watcher's last tick; CORS origin from `WEBSITE_ORIGIN` (default `*`).
 
 Node 22.22+ runs the `.ts` files directly (type stripping), so there is no build step.
 SQLite uses the built-in `node:sqlite`; the DB file lives in `data/` (gitignored).

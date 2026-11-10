@@ -5,10 +5,13 @@ One codebase, run as independent processes — one per agent:
 npm install
 cp .env.example .env.research   # edit AGENT_ID / ROLE; repeat for .env.security, .env.market
 npm start -- research           # loads agent/.env.research
+npm run agents:all              # all agents (AGENTS=research,security,market) as child processes
 npm run typecheck
 ```
-- NEAR AI key: `NEARAI_API_KEY` in the repo-root `.env` (never logged).
-- NEAR key: `~/.near-credentials/testnet/<AGENT_ID>.json` — each agent signs its own transactions.
+- Config: environment variables first (`RESEARCH_AGENT_ID`, `RESEARCH_AGENT_PRIVATE_KEY`, … — see `/DEPLOY.md`),
+  then `agent/.env.<name>`. NEAR AI key: `NEARAI_API_KEY` env, else the repo-root `.env`.
+- NEAR key: `<NAME>_AGENT_PRIVATE_KEY` env, else `~/.near-credentials/testnet/<AGENT_ID>.json` —
+  each agent signs its own transactions. Keys are never logged, only their source.
 - State: `state/<AGENT_ID>.json` (gitignored) — slot progress, attempts, estimated spend.
   Raw AI responses of failed attempts go to `state/failures/`.
 

@@ -1,7 +1,7 @@
 // Stage 3.4: for Submitted tasks without a final report: check stored results →
 // SYNTHESIS → ASSEMBLY → save → set_final_report on-chain (as the coordinator).
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { config } from "./config.ts";
 import { sha256 } from "./hash.ts";
 import { call, getAgent, getTask, type Task } from "./near.ts";
@@ -57,7 +57,7 @@ export async function aggregate(task: Task): Promise<void> {
       synth = await synthesize(task, contributions, (usd) => store.addSynthSpend(usd), (m) => console.log(`${tag} ${m}`), raws);
     } catch (e) {
       const msg = errMsg(e);
-      const dir = join(import.meta.dirname, "..", "data", "failures");
+      const dir = join(dirname(config.dbPath), "failures");
       mkdirSync(dir, { recursive: true });
       const base = join(dir, `synthesis-task${task.id}-attempt${attempt}`);
       writeFileSync(`${base}-error.txt`, msg + "\n");

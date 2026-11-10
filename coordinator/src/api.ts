@@ -4,6 +4,8 @@ import { checkResult } from "./proof.ts";
 import { createPlan, planMatches, PlanError, type Plan } from "./planner.ts";
 import { getTask, type Task } from "./near.ts";
 import { store } from "./store.ts";
+import { config } from "./config.ts";
+import { watcherStatus } from "./watcher.ts";
 
 /** Short per-role instruction used in briefs until AI-written briefs exist. */
 const ROLE_INSTRUCTIONS: Record<string, string> = {
@@ -47,7 +49,31 @@ function bodyText(req: Request, res: Response, field: string): string | null {
 
 export function createApi() {
   const app = express();
-  app.use(express.json({ limit: "5mb" })); // proofs carry raw AI responses (25 KB+ with search)
+  // CORS for the website (WEBSITE_ORIGIN: "*" or comma-separated origins). No extra dependency.
+  const allowed = config.websiteOrigin.split(",").map((o) => o.trim()).filter(Boolean);
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowed.includes("*")) res.setHeader("Access-Control-Allow-Origin", "*");
+    else if (origin && allowed.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+    }
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") return void res.sendStatus(204);
+    next();
+  });
+  app.use(express.json({ limit: "5mb" }));
+
+  // Liveness for Railway's health check and the website.
+  app.get("/health", (_req, res) => {
+    res.json({
+      ok: true,
+      contract_id: config.contractId,
+      coordinator_id: config.coordinatorId,
+      watcher: watcherStatus,
+    });
+  }); // proofs carry raw AI responses (25 KB+ with search)
 
   // Store a task description, only if it matches the on-chain description_hash.
   app.post("/tasks/:id/description", async (req, res) => {

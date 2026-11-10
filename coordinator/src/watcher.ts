@@ -8,9 +8,19 @@ import { aggregate } from "./aggregate.ts";
 const reportedNoMatch = new Set<string>();
 let running = false;
 
+/** For GET /health. */
+export const watcherStatus = {
+  interval_ms: config.watchIntervalMs,
+  last_tick_at: null as string | null,
+  last_tick_ok: null as boolean | null,
+  last_error: null as string | null,
+  ticks: 0,
+};
+
 export async function tick(): Promise<void> {
   if (running) return; // previous tick still sending transactions
   running = true;
+  let failed: string | null = null;
   try {
     const nowNs = BigInt(Date.now()) * 1_000_000n;
     const allTasks = await getAllTasks();
@@ -63,7 +73,13 @@ export async function tick(): Promise<void> {
     }
   } catch (err) {
     console.error("[watcher] tick failed:", err instanceof Error ? err.message : err);
+    failed = err instanceof Error ? err.message : String(err);
   } finally {
+    // Set here so early `return`s inside the try still count as a successful tick.
+    watcherStatus.last_tick_ok = failed === null;
+    watcherStatus.last_error = failed;
+    watcherStatus.last_tick_at = new Date().toISOString();
+    watcherStatus.ticks++;
     running = false;
   }
 }
