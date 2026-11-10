@@ -2,6 +2,7 @@
 import { config } from "./config.ts";
 import { call, getAllAgents, getAllTasks } from "./near.ts";
 import { store } from "./store.ts";
+import { aggregate } from "./aggregate.ts";
 
 /** "task:slot" pairs already reported as having no match, so the log isn't spammed every tick. */
 const reportedNoMatch = new Set<string>();
@@ -12,7 +13,14 @@ export async function tick(): Promise<void> {
   running = true;
   try {
     const nowNs = BigInt(Date.now()) * 1_000_000n;
-    const tasks = (await getAllTasks()).filter(
+    const allTasks = await getAllTasks();
+
+    // Stage 3.4: final reports for Submitted tasks (one at a time, sequential).
+    for (const t of allTasks.filter((t) => t.status === "Submitted" && t.final_report_hash === null)) {
+      await aggregate(t);
+    }
+
+    const tasks = allTasks.filter(
       (t) => t.status === "Funded" || t.status === "InProgress",
     );
     const open = tasks.filter((t) => {

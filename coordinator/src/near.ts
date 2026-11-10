@@ -61,6 +61,7 @@ async function all<T>(method: string): Promise<T[]> {
 }
 export const getAllTasks = () => all<Task>("get_tasks");
 export const getAllAgents = () => all<Agent>("get_agents");
+export const getAgent = (id: string) => view<Agent | null>("get_agent", { agent_id: id });
 
 // Signed calls go out one at a time so two calls never race for the same nonce.
 let queue: Promise<unknown> = Promise.resolve();

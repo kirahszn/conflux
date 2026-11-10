@@ -124,13 +124,36 @@ export function createApi() {
     res.json({ ok: true, task_id: task.id, slot, result_hash: got, proof_kinds: kinds });
   });
 
+  // Stage 3.4: the assembled final report as markdown.
+  app.get("/tasks/:id/report", async (req, res) => {
+    const task = await loadTask(req, res);
+    if (!task) return;
+    const fr = store.finalReport(task.id);
+    if (!fr?.report) return res.status(404).json({ error: `no final report for task ${task.id} yet` });
+    res.type("text/markdown; charset=utf-8").send(fr.report);
+  });
+
   // On-chain task merged with stored off-chain text.
   app.get("/tasks/:id", async (req, res) => {
     const task = await loadTask(req, res);
     if (!task) return;
     const results = store.results(task.id);
+    const fr = store.finalReport(task.id);
+    const sp = fr?.proof as { kind?: string; chat_id?: string; signing_address?: string; model?: string } | null | undefined;
     res.json({
       ...task,
+      final_report: fr
+        ? {
+            status: fr.status,
+            attempts: fr.attempts,
+            report_hash: fr.report_hash,
+            matches_on_chain: fr.report_hash !== null && fr.report_hash === task.final_report_hash,
+            tx: fr.tx,
+            url: `/tasks/${task.id}/report`,
+            synthesis_proof: sp ? { kind: sp.kind, chat_id: sp.chat_id, signing_address: sp.signing_address, model: sp.model } : null,
+            last_error: fr.last_error,
+          }
+        : null,
       description: store.description(task.id) ?? null,
       slots: task.slots.map((s, i) => ({
         ...s,

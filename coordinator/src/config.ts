@@ -20,6 +20,12 @@ if (!keyFile.private_key?.startsWith("ed25519:")) {
   throw new Error(`No ed25519 private_key in ${keyPath}`);
 }
 
+// NEAR AI key for the SYNTHESIS call: repo-root .env (never logged).
+const rootEnv = join(import.meta.dirname, "..", "..", ".env");
+const nearAiKey = existsSync(rootEnv)
+  ? readFileSync(rootEnv, "utf8").match(/^NEARAI_API_KEY=["']?([^"'\r\n]+)/m)?.[1]
+  : undefined;
+
 export const config = {
   contractId: required("CONTRACT_ID"),
   coordinatorId,
@@ -28,4 +34,11 @@ export const config = {
   dbPath: process.env.DB_PATH ?? "./data/coordinator.db",
   watchIntervalMs: Number(process.env.WATCH_INTERVAL_MS ?? 10_000),
   privateKey: keyFile.private_key as `ed25519:${string}`,
+  // Stage 3.4 synthesis
+  nearAiKey: nearAiKey ?? "",
+  model: process.env.MODEL ?? "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  synthMaxTokens: Number(process.env.SYNTH_MAX_TOKENS ?? 3000),
+  synthSpendLimitUsd: Number(process.env.SYNTH_SPEND_LIMIT_USD ?? 0.03),
+  priceInPerM: Number(process.env.PRICE_IN_PER_M ?? 0.3),
+  priceOutPerM: Number(process.env.PRICE_OUT_PER_M ?? 1.2),
 };
