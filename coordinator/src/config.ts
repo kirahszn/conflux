@@ -39,6 +39,7 @@ export const config = {
   model: process.env.MODEL ?? "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   synthMaxTokens: Number(process.env.SYNTH_MAX_TOKENS ?? 3000),
   synthSpendLimitUsd: Number(process.env.SYNTH_SPEND_LIMIT_USD ?? 0.03),
+  planSpendLimitUsd: Number(process.env.PLAN_SPEND_LIMIT_USD ?? 0.02),
   priceInPerM: Number(process.env.PRICE_IN_PER_M ?? 0.3),
   priceOutPerM: Number(process.env.PRICE_OUT_PER_M ?? 1.2),
 };

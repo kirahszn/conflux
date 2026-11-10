@@ -14,7 +14,12 @@ async function req(method: string, path: string, body?: unknown) {
 }
 
 export const getBrief = (taskId: number, slot: number) =>
-  req("GET", `/tasks/${taskId}/slots/${slot}/brief`) as Promise<{ task_title: string; role: string; brief: string }>;
+  req("GET", `/tasks/${taskId}/slots/${slot}/brief`) as Promise<{
+    task_title: string;
+    role: string;
+    brief: string;
+    brief_source?: "plan" | "generic";
+  }>;
 
 export const postResult = (taskId: number, slot: number, text: string, proof: Proof) =>
   req("POST", `/tasks/${taskId}/slots/${slot}/result`, { text, proof });

@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { sha256 } from "./hash.ts";
 import { checkResult } from "./proof.ts";
+import { createPlan, planMatches, PlanError, type Plan } from "./planner.ts";
 import { getTask, type Task } from "./near.ts";
 import { store } from "./store.ts";
 
@@ -63,8 +64,15 @@ export function createApi() {
       });
     }
     store.saveDescription(task.id, description);
-    console.log(`[api] stored description for task ${task.id}`);
-    res.json({ ok: true, task_id: task.id, description_hash: got });
+    // Stage 3.5: link the AI plan if the on-chain slots match it exactly.
+    const plan = store.plan(got) as Plan | undefined;
+    const linked = plan !== undefined && planMatches(plan, task.slots);
+    if (linked) store.linkPlan(task.id, got);
+    console.log(
+      `[api] stored description for task ${task.id}; plan ` +
+        (plan === undefined ? "none (generic briefs)" : linked ? "LINKED (tailored briefs)" : "found but slots differ (generic briefs)"),
+    );
+    res.json({ ok: true, task_id: task.id, description_hash: got, plan_linked: linked });
   });
 
   // Brief for the agent working on one slot.
@@ -78,10 +86,15 @@ export function createApi() {
       return res.status(409).json({ error: `description for task ${task.id} not stored yet` });
     }
     const role = task.slots[slot]!.role;
+    const plan = store.linkedPlan(task.id) as Plan | undefined;
+    const tailored = plan?.slots[slot]?.role === role ? plan.slots[slot]!.brief : undefined;
     res.json({
       task_title: task.title,
       role,
-      brief: `You are the ${role} agent. ${instructionFor(role)}\n\nTask: ${description}`,
+      brief_source: tailored ? "plan" : "generic",
+      brief: tailored
+        ? `${tailored}\n\nFull task description: ${description}`
+        : `You are the ${role} agent. ${instructionFor(role)}\n\nTask: ${description}`,
     });
   });
 
@@ -122,6 +135,16 @@ export function createApi() {
         (proof && !("kind" in proof) ? ` write signer ${proof.write.signing_address}` : ""),
     );
     res.json({ ok: true, task_id: task.id, slot, result_hash: got, proof_kinds: kinds });
+  });
+
+  // Stage 3.5: AI task plan → exact create_task arguments.
+  app.post("/plan", async (req, res) => {
+    try {
+      res.json(await createPlan(req.body));
+    } catch (e) {
+      if (e instanceof PlanError) return res.status(e.status).json({ error: e.message });
+      throw e;
+    }
   });
 
   // Stage 3.4: the assembled final report as markdown.

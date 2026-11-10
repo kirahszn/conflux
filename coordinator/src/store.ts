@@ -35,6 +35,16 @@ db.exec(`
     updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+  -- Stage 3.5: AI plans by description_hash, and which task uses which plan.
+  CREATE TABLE IF NOT EXISTS plans (
+    description_hash TEXT PRIMARY KEY,
+    plan             TEXT NOT NULL,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS plan_links (
+    task_id          INTEGER PRIMARY KEY,
+    description_hash TEXT NOT NULL
+  );
 `);
 // Stage 3.3: proof JSON per result. Add the column to databases created in 3.2.
 const resultCols = db.prepare("PRAGMA table_info(results)").all() as { name: string }[];
@@ -83,6 +93,20 @@ export const store = {
     ).run(taskId, row.status, row.attempts, row.report, row.report_hash, row.synthesis,
       row.proof === null ? null : JSON.stringify(row.proof), row.tx, row.last_error);
   },
+  savePlan: (hash: string, plan: unknown) =>
+    void db.prepare("INSERT OR REPLACE INTO plans (description_hash, plan) VALUES (?, ?)").run(hash, JSON.stringify(plan)),
+  plan: (hash: string): unknown | undefined => {
+    const r = db.prepare("SELECT plan FROM plans WHERE description_hash = ?").get(hash) as { plan: string } | undefined;
+    return r && JSON.parse(r.plan);
+  },
+  linkPlan: (taskId: number, hash: string) =>
+    void db.prepare("INSERT OR REPLACE INTO plan_links (task_id, description_hash) VALUES (?, ?)").run(taskId, hash),
+  linkedPlan: (taskId: number): unknown | undefined => {
+    const r = db.prepare("SELECT description_hash FROM plan_links WHERE task_id = ?").get(taskId) as { description_hash: string } | undefined;
+    return r && store.plan(r.description_hash);
+  },
+  planSpent: (): number => Number((getMeta.get("plan_spent_usd") as { value: string } | undefined)?.value ?? 0),
+  addPlanSpend: (usd: number) => void putMeta.run("plan_spent_usd", String(store.planSpent() + usd)),
   synthSpent: (): number => Number((getMeta.get("synth_spent_usd") as { value: string } | undefined)?.value ?? 0),
   addSynthSpend: (usd: number) => void putMeta.run("synth_spent_usd", String(store.synthSpent() + usd)),
 

@@ -19,8 +19,9 @@ SQLite uses the built-in `node:sqlite`; the DB file lives in `data/` (gitignored
 ## API
 | Method | Path | What it does |
 |---|---|---|
-| POST | `/tasks/:id/description` `{description}` | Stores it only if `sha256(description)` = on-chain `description_hash` |
-| GET  | `/tasks/:id/slots/:slot/brief` | `{task_title, role, brief}` (role instruction + description) |
+| POST | `/plan` `{title, description, budget_near, deadline_hours?}` | AI plan: roles (only capabilities of active agents), reason, reward and tailored brief per slot; code fixes rewards so rewards + 10% fee = budget exactly. Returns the plan, `description_hash`, exact `create_task` args and deposit. `provider_tee` signed; 2 attempts; `PLAN_SPEND_LIMIT_USD` |
+| POST | `/tasks/:id/description` `{description}` | Stores it only if `sha256(description)` = on-chain `description_hash`; links the stored plan if the task's on-chain roles + rewards match it (`plan_linked`) |
+| GET  | `/tasks/:id/slots/:slot/brief` | `{task_title, role, brief, brief_source}` — the plan's tailored brief + description if a plan is linked, else a generic role instruction + description |
 | POST | `/tasks/:id/slots/:slot/result` `{text, proof?}` | Stores it only if the slot is submitted on-chain, `sha256(text)` = `result_hash`, and the report passes the quality gate (`src/report.ts`). If `proof` = `{gather, write}` is sent: each part's signed hashes must equal sha256 of its `request_body` / `raw_response`, `text` must be the report inside the WRITE response, and the on-chain `proof_ref` must name the WRITE call (`src/proof.ts`). Signer recovery + attestation checks: later stage. |
 | GET  | `/tasks/:id` | On-chain task merged with stored description, slot results, proofs and `final_report` info (status, hash, `matches_on_chain`, tx, synthesis proof) |
 | GET  | `/tasks/:id/report` | The assembled final report (markdown); its sha256 is the on-chain `final_report_hash` |
@@ -46,3 +47,10 @@ on-chain `result_hash` and passes the quality gate:
    result_hash, proof kinds, full report with headings nested under the agent), `## Verification`.
 3. Saved with its sha256 **before** the transaction, then `set_final_report(task_id, sha256)` as the coordinator.
    The creator can then `approve_task`.
+
+## Planning (Stage 3.5)
+`POST /plan` → one NEAR AI call (`prompts/plan.md`, JSON answer) → `src/planner.ts` validates: unknown
+roles dropped, 1–10 slots, fee = budget / 10, rewards re-scaled (0.0001 NEAR steps, dust to the largest
+slot) so `sum(rewards) + fee == budget` in yoctoNEAR. Plans are stored by `description_hash`; the website
+creates the task with `create_task.args` + `attached_deposit` (budget + 0.05 NEAR storage allowance,
+excess refunded by the contract), then POSTs the description to link the plan.

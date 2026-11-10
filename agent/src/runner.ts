@@ -78,7 +78,8 @@ async function work(task: Task, slot: number) {
       addCost: (usd) => state.addSpend(usd),
     };
     try {
-      const { brief } = await retry(`${tag} get brief`, () => getBrief(task.id, slot));
+      const { brief, brief_source } = await retry(`${tag} get brief`, () => getBrief(task.id, slot));
+      log(`${tag} BRIEF (${brief_source ?? "generic"}, ${brief.length} chars): ${brief.split("\n")[0]!.slice(0, 220)}`);
       const t0 = Date.now();
       const a = await answer(brief, trace, (m) => log(`${tag} ${m}`));
       const resultHash = sha256(a.text);
