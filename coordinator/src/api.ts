@@ -67,7 +67,7 @@ export function createApi() {
     // Stage 3.5: link the AI plan if the on-chain slots match it exactly.
     const plan = store.plan(got) as Plan | undefined;
     const linked = plan !== undefined && planMatches(plan, task.slots);
-    if (linked) store.linkPlan(task.id, got);
+    if (linked) store.linkPlan(task.id, got, plan);
     console.log(
       `[api] stored description for task ${task.id}; plan ` +
         (plan === undefined ? "none (generic briefs)" : linked ? "LINKED (tailored briefs)" : "found but slots differ (generic briefs)"),

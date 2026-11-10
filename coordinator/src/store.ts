@@ -46,6 +46,13 @@ db.exec(`
     description_hash TEXT NOT NULL
   );
 `);
+// A linked task keeps its own copy of the plan, so a later POST /plan for the same
+// description (same hash) can't change the briefs of an existing task.
+const linkCols = db.prepare("PRAGMA table_info(plan_links)").all() as { name: string }[];
+if (!linkCols.some((c) => c.name === "plan")) {
+  db.exec("ALTER TABLE plan_links ADD COLUMN plan TEXT");
+  db.exec("UPDATE plan_links SET plan = (SELECT plan FROM plans WHERE plans.description_hash = plan_links.description_hash) WHERE plan IS NULL");
+}
 // Stage 3.3: proof JSON per result. Add the column to databases created in 3.2.
 const resultCols = db.prepare("PRAGMA table_info(results)").all() as { name: string }[];
 if (!resultCols.some((c) => c.name === "proof")) db.exec("ALTER TABLE results ADD COLUMN proof TEXT");
@@ -99,11 +106,13 @@ export const store = {
     const r = db.prepare("SELECT plan FROM plans WHERE description_hash = ?").get(hash) as { plan: string } | undefined;
     return r && JSON.parse(r.plan);
   },
-  linkPlan: (taskId: number, hash: string) =>
-    void db.prepare("INSERT OR REPLACE INTO plan_links (task_id, description_hash) VALUES (?, ?)").run(taskId, hash),
+  linkPlan: (taskId: number, hash: string, plan: unknown) =>
+    void db
+      .prepare("INSERT OR REPLACE INTO plan_links (task_id, description_hash, plan) VALUES (?, ?, ?)")
+      .run(taskId, hash, JSON.stringify(plan)),
   linkedPlan: (taskId: number): unknown | undefined => {
-    const r = db.prepare("SELECT description_hash FROM plan_links WHERE task_id = ?").get(taskId) as { description_hash: string } | undefined;
-    return r && store.plan(r.description_hash);
+    const r = db.prepare("SELECT plan FROM plan_links WHERE task_id = ?").get(taskId) as { plan: string | null } | undefined;
+    return r?.plan ? JSON.parse(r.plan) : undefined;
   },
   planSpent: (): number => Number((getMeta.get("plan_spent_usd") as { value: string } | undefined)?.value ?? 0),
   addPlanSpend: (usd: number) => void putMeta.run("plan_spent_usd", String(store.planSpent() + usd)),

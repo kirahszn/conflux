@@ -188,6 +188,10 @@ export async function createPlan(body: unknown): Promise<Plan> {
           agents: roleAgents.get(s.role as string)!,
         };
       });
+      // Briefs must be self-contained: reject any that lean on another role's work.
+      const xref = crossReferenceProblems(slots, [...roleAgents.keys()]);
+      if (xref.length) throw new Error(`briefs not self-contained: ${xref.join("; ")}`);
+
       const total = slots.reduce((a, s) => a + BigInt(s.reward), 0n) + fee;
       if (total !== budget) throw new Error(`internal: rewards + fee = ${total} != budget ${budget}`);
 
@@ -230,6 +234,45 @@ export async function createPlan(body: unknown): Promise<Plan> {
     }
   }
   throw new PlanError(502, `planning failed after ${MAX_PLAN_ATTEMPTS} attempts: ${lastError}`);
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Briefs must be self-contained (agents run in parallel and can't see each other).
+ * Returns problems for any brief that points at another role's output/sources/findings.
+ */
+export function crossReferenceProblems(slots: { role: string; brief: string }[], allRoles: string[]): string[] {
+  const problems: string[] = [];
+  const WORK = "(?:sources?|source list|findings?|outputs?|reports?|results?|data|adoption data|metrics|evidence|work|analysis)";
+  const generic = [
+    new RegExp(`\\b(?:other|another|each other'?s?|the other) (?:roles?|agents?)(?:['’]s?)?\\s+${WORK}\\b`, "i"),
+    new RegExp(`\\b(?:other|another) (?:roles?|agents?)['’]s?\\b`, "i"),
+  ];
+  slots.forEach((s, i) => {
+    const hits: string[] = [];
+    for (const other of allRoles.filter((r) => r !== s.role)) {
+      const o = escapeRe(other);
+      const patterns = [
+        new RegExp(`\\b${o}[- ](?:role|agent)['’]s\\b`, "i"), // "research agent's", "research role's"
+        new RegExp(`(?<!\\bthe )\\b${o}['’]s\\s+${WORK}\\b`, "i"), // "research's findings" (not "the market's data")
+        new RegExp(`\\bfrom (?:the )?${o}(?:[- ](?:role|agent))?(?=\\s*(?:$|[,.;:)])|\\s+${WORK}\\b)`, "i"), // "from research", "from the research role"
+        new RegExp(`\\bfrom (?:the )?${o}[- ](?:role|agent)\\b`, "i"),
+        new RegExp(`\\bthe ${o}(?:[- ](?:role|agent))?\\s+${WORK}\\b`, "i"), // "the research sources"
+        new RegExp(`\\b${o}[- ](?:role|agent)\\s+${WORK}\\b`, "i"), // "research role findings"
+      ];
+      for (const p of patterns) {
+        const m = p.exec(s.brief);
+        if (m) hits.push(`"${m[0]}"`);
+      }
+    }
+    for (const p of generic) {
+      const m = p.exec(s.brief);
+      if (m) hits.push(`"${m[0]}"`);
+    }
+    if (hits.length) problems.push(`slot ${i} (${s.role}) brief refers to another role's work: ${[...new Set(hits)].join(", ")}`);
+  });
+  return problems;
 }
 
 /** The plan matches a task if its on-chain slots have the same roles and rewards, in order. */

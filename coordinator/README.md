@@ -54,3 +54,9 @@ roles dropped, 1–10 slots, fee = budget / 10, rewards re-scaled (0.0001 NEAR s
 slot) so `sum(rewards) + fee == budget` in yoctoNEAR. Plans are stored by `description_hash`; the website
 creates the task with `create_task.args` + `attached_deposit` (budget + 0.05 NEAR storage allowance,
 excess refunded by the contract), then POSTs the description to link the plan.
+
+Agents run in parallel and can't see each other, so every brief must be **self-contained**:
+`crossReferenceProblems()` rejects a plan (counts as a failed attempt) if a brief points at another
+role's output, sources or findings ("research agent's", "from research", "the research sources", …).
+Combining results happens only in the coordinator's synthesis. A linked task keeps its own copy of the
+plan, so re-planning the same description never changes an existing task's briefs.
