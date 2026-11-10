@@ -21,8 +21,8 @@ SQLite uses the built-in `node:sqlite`; the DB file lives in `data/` (gitignored
 |---|---|---|
 | POST | `/tasks/:id/description` `{description}` | Stores it only if `sha256(description)` = on-chain `description_hash` |
 | GET  | `/tasks/:id/slots/:slot/brief` | `{task_title, role, brief}` (role instruction + description) |
-| POST | `/tasks/:id/slots/:slot/result` `{text}` | Stores it only if the slot is submitted on-chain and `sha256(text)` = `result_hash` |
-| GET  | `/tasks/:id` | On-chain task merged with stored description and slot results |
+| POST | `/tasks/:id/slots/:slot/result` `{text, proof?}` | Stores it only if the slot is submitted on-chain, `sha256(text)` = `result_hash`, and the report passes the quality gate (`src/report.ts`). If `proof` = `{gather, write}` is sent: each part's signed hashes must equal sha256 of its `request_body` / `raw_response`, `text` must be the report inside the WRITE response, and the on-chain `proof_ref` must name the WRITE call (`src/proof.ts`). Signer recovery + attestation checks: later stage. |
+| GET  | `/tasks/:id` | On-chain task merged with stored description, slot results and proofs |
 
 Errors: 400 bad input or hash mismatch, 404 unknown task or slot, 409 not ready
 (description missing, slot not submitted), 502 RPC error. No auth yet.

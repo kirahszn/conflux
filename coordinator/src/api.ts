@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { sha256 } from "./hash.ts";
+import { checkResult } from "./proof.ts";
 import { getTask, type Task } from "./near.ts";
 import { store } from "./store.ts";
 
@@ -45,7 +46,7 @@ function bodyText(req: Request, res: Response, field: string): string | null {
 
 export function createApi() {
   const app = express();
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "5mb" })); // proofs carry raw AI responses (25 KB+ with search)
 
   // Store a task description, only if it matches the on-chain description_hash.
   app.post("/tasks/:id/description", async (req, res) => {
@@ -104,9 +105,23 @@ export function createApi() {
         got,
       });
     }
-    store.saveResult(task.id, slot, text);
-    console.log(`[api] stored result for task ${task.id} slot ${slot}`);
-    res.json({ ok: true, task_id: task.id, slot, result_hash: got });
+    // Stage 3.3: quality gate + optional proof {gather, write}, consistent with the on-chain proof_ref.
+    const checked = checkResult(text, task.slots[slot]!.role, (req.body as Record<string, unknown>).proof, task.slots[slot]!.proof_ref);
+    if (!checked.ok) {
+      console.warn(`[api] REJECTED result for task ${task.id} slot ${slot}: ${checked.error}`);
+      return res.status(400).json({ error: `result rejected: ${checked.error}` });
+    }
+    const proof = checked.value;
+    const kinds =
+      proof === null ? null
+      : "kind" in proof ? { dry_run: true }
+      : { gather: proof.gather?.kind ?? null, write: proof.write.kind };
+    store.saveResult(task.id, slot, text, proof);
+    console.log(
+      `[api] stored result for task ${task.id} slot ${slot} (${text.length} chars, passes quality gate), proof ${JSON.stringify(kinds)}` +
+        (proof && !("kind" in proof) ? ` write signer ${proof.write.signing_address}` : ""),
+    );
+    res.json({ ok: true, task_id: task.id, slot, result_hash: got, proof_kinds: kinds });
   });
 
   // On-chain task merged with stored off-chain text.
@@ -117,7 +132,11 @@ export function createApi() {
     res.json({
       ...task,
       description: store.description(task.id) ?? null,
-      slots: task.slots.map((s, i) => ({ ...s, result: results.get(i) ?? null })),
+      slots: task.slots.map((s, i) => ({
+        ...s,
+        result: results.get(i)?.text ?? null,
+        proof: results.get(i)?.proof ?? null,
+      })),
     });
   });
 

@@ -20,17 +20,33 @@ db.exec(`
     PRIMARY KEY (task_id, slot)
   );
 `);
+// Stage 3.3: proof JSON per result. Add the column to databases created in 3.2.
+const resultCols = db.prepare("PRAGMA table_info(results)").all() as { name: string }[];
+if (!resultCols.some((c) => c.name === "proof")) db.exec("ALTER TABLE results ADD COLUMN proof TEXT");
 
 const putDesc = db.prepare("INSERT OR REPLACE INTO descriptions (task_id, text) VALUES (?, ?)");
 const getDesc = db.prepare("SELECT text FROM descriptions WHERE task_id = ?");
-const putRes = db.prepare("INSERT OR REPLACE INTO results (task_id, slot, text) VALUES (?, ?, ?)");
-const getRes = db.prepare("SELECT slot, text FROM results WHERE task_id = ? ORDER BY slot");
+const putRes = db.prepare(
+  "INSERT OR REPLACE INTO results (task_id, slot, text, proof) VALUES (?, ?, ?, ?)",
+);
+const getRes = db.prepare("SELECT slot, text, proof FROM results WHERE task_id = ? ORDER BY slot");
+
+export interface StoredResult {
+  text: string;
+  proof: unknown | null;
+}
 
 export const store = {
   saveDescription: (taskId: number, text: string) => void putDesc.run(taskId, text),
   description: (taskId: number): string | undefined =>
     (getDesc.get(taskId) as { text: string } | undefined)?.text,
-  saveResult: (taskId: number, slot: number, text: string) => void putRes.run(taskId, slot, text),
-  results: (taskId: number): Map<number, string> =>
-    new Map((getRes.all(taskId) as { slot: number; text: string }[]).map((r) => [r.slot, r.text])),
+  saveResult: (taskId: number, slot: number, text: string, proof: unknown | null) =>
+    void putRes.run(taskId, slot, text, proof === null ? null : JSON.stringify(proof)),
+  results: (taskId: number): Map<number, StoredResult> =>
+    new Map(
+      (getRes.all(taskId) as { slot: number; text: string; proof: string | null }[]).map((r) => [
+        r.slot,
+        { text: r.text, proof: r.proof === null ? null : JSON.parse(r.proof) },
+      ]),
+    ),
 };
