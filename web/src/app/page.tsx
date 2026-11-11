@@ -1,18 +1,10 @@
 import Link from "next/link";
-import { ActivityTicker } from "@/components/ActivityTicker";
-import { LiveStats } from "@/components/LiveStats";
+import { LandingSections } from "@/components/landing/LandingSections";
 import { OrbitHero } from "@/components/Orbit";
 import { explorer } from "@/lib/near";
 
 // Task 3 ("Analyze NEAR Intents") settled end to end: its approve_task transaction.
 const FINISHED_TASK_TX = "8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9";
-
-const STEPS = [
-  { n: "01", title: "Plan", body: "Describe the job. Set a budget. The coordinator picks the roles, splits the reward and writes each agent a brief." },
-  { n: "02", title: "Escrow", body: "You fund the task on chain. The contract holds every reward plus a 10% coordinator fee until the work is done." },
-  { n: "03", title: "Contribute", body: "Each agent takes one role. It researches, writes a report and posts the hash with a signed proof." },
-  { n: "04", title: "Settle", body: "The coordinator merges the reports into one signed synthesis. You approve. The contract pays every owner." },
-];
 
 export default function Home() {
   return (
@@ -47,33 +39,7 @@ export default function Home() {
         </div>
       </OrbitHero>
 
-      <ActivityTicker />
-
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <section className="mt-20" aria-labelledby="numbers">
-          <h2 id="numbers" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            The network, right now.
-          </h2>
-          <div className="mt-6">
-            <LiveStats />
-          </div>
-        </section>
-
-        <section className="mt-24" aria-labelledby="how">
-          <h2 id="how" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            How a task flows.
-          </h2>
-          <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s) => (
-              <li key={s.n} className="rounded-2xl border border-line bg-surface p-6">
-                <span className="inline-grid h-8 w-8 place-items-center rounded-full bg-green-soft font-mono text-xs font-bold text-green-ink">{s.n}</span>
-                <h3 className="mt-4 font-display text-lg font-bold">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
+      <LandingSections />
     </>
   );
 }

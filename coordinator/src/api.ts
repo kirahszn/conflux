@@ -182,6 +182,23 @@ export function createApi() {
     res.type("text/markdown; charset=utf-8").send(fr.report);
   });
 
+  // Stage 4.2b: the plan linked to a task (public parts only: roles, reasons, rewards, plan proof).
+  app.get("/tasks/:id/plan", async (req, res) => {
+    const task = await loadTask(req, res);
+    if (!task) return;
+    const plan = store.linkedPlan(task.id) as Plan | undefined;
+    if (!plan) return res.status(404).json({ error: `no plan linked to task ${task.id}` });
+    res.json({
+      task_id: task.id,
+      title: plan.title,
+      budget: plan.budget,
+      coordinator_fee: plan.coordinator_fee,
+      slots: plan.slots.map((s) => ({ role: s.role, reason: s.reason, reward: s.reward, reward_near: s.reward_near })),
+      proof: { kind: plan.proof.kind, model: plan.proof.model, chat_id: plan.proof.chat_id, signing_address: plan.proof.signing_address },
+      created_at: plan.created_at,
+    });
+  });
+
   // On-chain task merged with stored off-chain text.
   app.get("/tasks/:id", async (req, res) => {
     const task = await loadTask(req, res);

@@ -1,0 +1,167 @@
+{
+  "source": "snapshot",
+  "captured_at": "2026-11-11T15:30:03.229Z",
+  "contract_id": "v2.conflux-blessing.testnet",
+  "coordinator": "coordinator.conflux-blessing.testnet",
+  "task": {
+    "id": 3,
+    "title": "Analyze NEAR Intents",
+    "creator": "creator-blessing.testnet",
+    "status": "Settled",
+    "budget_near": "0.4",
+    "fee_near": "0.04",
+    "final_report_hash": "57411e88c46778d0c384a86e545d440e25e231e991332991531d8ba5a867895d",
+    "final_report_tx": "FBVvqQz1eLa6QmDXcsisoyb1QsnSkAY85P9na9wbRwUc"
+  },
+  "plan": {
+    "slots": [
+      {
+        "role": "research",
+        "reason": "Establish what NEAR Intents is, how it works, and credible adoption evidence.",
+        "reward_near": "0.14"
+      },
+      {
+        "role": "security",
+        "reason": "Evaluate the intent/solver trust model, verifier design, and concrete risk vectors.",
+        "reward_near": "0.12"
+      },
+      {
+        "role": "market",
+        "reason": "Position NEAR Intents against competitors and judge demand and pricing dynamics.",
+        "reward_near": "0.1"
+      }
+    ],
+    "proof": {
+      "kind": "provider_tee",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "chat_id": "chatcmpl-7503a1d9-b446-4569-a61d-7434604fc14b",
+      "signing_address": "0xfe0071895500a9755c18044948ab4f4e1a7f337e"
+    }
+  },
+  "contributions": [
+    {
+      "slot": 0,
+      "role": "research",
+      "reward_near": "0.14",
+      "agent_id": "agent.research-blessing.testnet",
+      "name": "Research Agent",
+      "owner": "research-blessing.testnet",
+      "result_hash": "a2d22ed2c7018dd7f86c2e176dae4d8299cf39019c2a56667c58415af08942c9",
+      "proof": {
+        "kind": "provider_tee",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "chat_id": "chatcmpl-f4e1ca8a-feac-4c94-aefd-1281a997be57",
+        "signing_address": "0xfe0071895500a9755c18044948ab4f4e1a7f337e",
+        "gather_kind": "gateway"
+      }
+    },
+    {
+      "slot": 1,
+      "role": "security",
+      "reward_near": "0.12",
+      "agent_id": "agent.security-blessing.testnet",
+      "name": "Security Agent",
+      "owner": "security-blessing.testnet",
+      "result_hash": "3519d164180d402f1224ab8ae6e540236dfb6ab9c5907843f591e24402af1a58",
+      "proof": {
+        "kind": "provider_tee",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "chat_id": "chatcmpl-cc72d018-9397-4e0c-918c-d17eec117ca1",
+        "signing_address": "0xfe0071895500a9755c18044948ab4f4e1a7f337e",
+        "gather_kind": "gateway"
+      }
+    },
+    {
+      "slot": 2,
+      "role": "market",
+      "reward_near": "0.1",
+      "agent_id": "agent.market-blessing.testnet",
+      "name": "Market Analysis Agent",
+      "owner": "market-blessing.testnet",
+      "result_hash": "478d9d93143173fe49ea5ae7ce70696200f38d6652ee958a0f6525515a94bce8",
+      "proof": {
+        "kind": "provider_tee",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "chat_id": "chatcmpl-ceabc81a-3c2e-435f-945f-fc0f0ea34045",
+        "signing_address": "0xfe0071895500a9755c18044948ab4f4e1a7f337e",
+        "gather_kind": "gateway"
+      }
+    }
+  ],
+  "synthesis": {
+    "proof": {
+      "kind": "provider_tee",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "chat_id": "chatcmpl-086b829c-930c-4791-9a9a-88199591c4cb",
+      "signing_address": "0xfe0071895500a9755c18044948ab4f4e1a7f337e"
+    },
+    "disagreement_count": 9,
+    "disagreements": [
+      {
+        "topic": "Cumulative volume (late 2026)",
+        "claims": [
+          {
+            "agent": "Research Agent",
+            "text": "cites ~$37B (Talos figure) and $22B+ (Nansen Q2 2026)"
+          },
+          {
+            "agent": "Market Analysis Agent",
+            "text": "cites ~$34B (mid-Oct 2026) and DefiLlama lifetime ~$33.6B"
+          }
+        ]
+      },
+      {
+        "topic": "30-day volume",
+        "claims": [
+          {
+            "agent": "Research Agent",
+            "text": "cites $4.8B prior-month (late 2026)"
+          },
+          {
+            "agent": "Market Analysis Agent",
+            "text": "cites ~$4.74B/30d, ~$4.18B/30d, and $3.715B/30d (DefiLlama, 9 Nov 2026)"
+          }
+        ]
+      },
+      {
+        "topic": "Blockchain coverage",
+        "claims": [
+          {
+            "agent": "Research Agent",
+            "text": "cites 25+ blockchains, 20+ blockchains, 35+ blockchains (Nansen Q2 2026)"
+          },
+          {
+            "agent": "Market Analysis Agent",
+            "text": "cites 31 chains (vendor claim)"
+          }
+        ]
+      }
+    ]
+  },
+  "payouts": [
+    {
+      "to": "research-blessing.testnet",
+      "amount_near": "0.14",
+      "role": "research",
+      "label": "Research Agent"
+    },
+    {
+      "to": "security-blessing.testnet",
+      "amount_near": "0.12",
+      "role": "security",
+      "label": "Security Agent"
+    },
+    {
+      "to": "market-blessing.testnet",
+      "amount_near": "0.1",
+      "role": "market",
+      "label": "Market Analysis Agent"
+    },
+    {
+      "to": "coordinator.conflux-blessing.testnet",
+      "amount_near": "0.04",
+      "role": null,
+      "label": "Coordinator fee"
+    }
+  ]
+}

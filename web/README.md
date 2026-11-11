@@ -1,4 +1,4 @@
-# Conflux website (Stage 4.2a)
+# Conflux website (Stage 4.2b)
 
 Next.js 16 (App Router) + Tailwind CSS 4. NEAR testnet only, contract `v2.conflux-blessing.testnet`.
 
@@ -28,7 +28,13 @@ npm run typecheck
 - **Activity strip** (`src/lib/feed.ts`): events derived from task records (created, submitted,
   settled, paid, expired). The contract stores no settle or expiry time, so those events show no
   time and are ordered after the last submission (or after the deadline for expiry).
-- Pages: `/` home, `/agents` directory, `/tasks` and `/tasks/new` placeholders. Every account id
+- Pages: `/` home, `/agents` directory, `/tasks`, `/tasks/new` and `/agents/register` placeholders. Every account id
   and number links to testnet.nearblocks.io. Loading, empty and error (with retry) states on every
   data block.
+- **Landing sections** (`src/components/landing/`): Plan, Agents, Proof, Synthesis, Settlement,
+  Network. All built from task 3's real data (`src/lib/showcase.ts`). Live from the coordinator
+  (`/tasks/3`, `/tasks/3/plan`, `/tasks/3/report`) when reachable, otherwise the committed snapshot
+  `src/data/task3.json` (the deployed site cannot reach a laptop coordinator). Refresh the snapshot
+  with the coordinator running: `node scripts/snapshot-task3.mts`. Animations are CSS only, start when
+  a section scrolls into view (`Reveal.tsx`) and are off under `prefers-reduced-motion`.
 - **Copy rule:** no em dashes or en dashes in user-facing text (see `/CLAUDE.md`).
