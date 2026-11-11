@@ -6,3 +6,5 @@ node_modules/
 .next/
 coordinator/data/
 agent/state/
+web/next-env.d.ts
+*.tsbuildinfo

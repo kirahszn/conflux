@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Conflux design tokens — dark "ink" theme with one warm signal colour. */
+@theme {
+  --color-ink: #0a0b0d;
+  --color-ink-2: #101216;
+  --color-ink-3: #161920;
+  --color-line: #23272f;
+  --color-line-strong: #343944;
+  --color-paper: #ece8df;
+  --color-muted: #8b909a;
+  --color-faint: #5d626c;
+  --color-signal: #f0a63a;
+  --color-signal-dim: #3a2a12;
+  --color-ok: #6cc28f;
+  --color-bad: #e5675a;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* faint grid that reads as "ledger paper" */
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-ink-3) 0%, #1d2129 50%, var(--color-ink-3) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
