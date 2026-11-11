@@ -1,24 +1,24 @@
 "use client";
 import { useWallet } from "@/lib/wallet";
-import { Account } from "./Account";
+import { shortenAccount } from "./Account";
 
 export function WalletButton() {
   const { ready, accountId, busy, error, signIn, signOut } = useWallet();
 
   if (!ready) {
-    return <span className="skeleton h-9 w-36" aria-label="Loading wallet" />;
+    return <span className="skeleton h-9 w-36 !rounded-full" aria-label="Loading wallet" />;
   }
   if (accountId) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="hidden items-center gap-2 rounded-md border border-line px-3 py-1.5 sm:inline-flex">
-          <span className="h-1.5 w-1.5 rounded-full bg-ok" aria-hidden />
-          <Account id={accountId} />
+      <div className="flex items-center gap-1 rounded-full border border-line-strong bg-surface p-1 pl-3">
+        <span className="h-2 w-2 rounded-full bg-green" aria-hidden />
+        <span className="hidden px-1 font-mono text-xs text-fg-2 sm:inline" title={accountId}>
+          {shortenAccount(accountId, 20)}
         </span>
         <button
           onClick={signOut}
           disabled={busy}
-          className="rounded-md border border-line-strong px-3 py-1.5 text-sm text-muted transition hover:border-paper hover:text-paper disabled:opacity-50"
+          className="rounded-full px-3 py-1 text-sm font-medium text-muted transition hover:bg-bg hover:text-fg disabled:opacity-50"
         >
           {busy ? "…" : "Disconnect"}
         </button>
@@ -35,7 +35,7 @@ export function WalletButton() {
       <button
         onClick={signIn}
         disabled={busy}
-        className="rounded-md bg-signal px-4 py-1.5 text-sm font-semibold text-ink transition hover:brightness-110 disabled:opacity-60"
+        className="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-white transition hover:bg-fg-2 disabled:opacity-60"
       >
         {busy ? "Connecting…" : "Connect wallet"}
       </button>

@@ -26,3 +26,5 @@ deadline 2026-11-14 23:59 UTC.
 - Do not add dependencies without saying why.
 - If a command fails, show the exact error. Never pretend something works.
 - If CLI syntax differs from these instructions, check `--help` and report the difference.
+- Writing: no em dashes or en dashes in any user-facing text (website copy, page titles, UI
+  labels). Use full stops, commas or colons. Short, punchy sentences.

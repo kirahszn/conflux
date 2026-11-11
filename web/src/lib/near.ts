@@ -91,6 +91,7 @@ async function all<T>(method: string, signal?: AbortSignal): Promise<T[]> {
 }
 export const getAllAgents = (signal?: AbortSignal) => all<Agent>("get_agents", signal);
 export const getAllTasks = (signal?: AbortSignal) => all<Task>("get_tasks", signal);
+export const getCoordinator = (signal?: AbortSignal) => view<string>("get_coordinator", {}, signal);
 
 // ---- Money -----------------------------------------------------------------
 const YOCTO = 10n ** 24n;
@@ -105,7 +106,7 @@ export function formatNear(yocto: bigint | string, maxDecimals = 4): string {
 
 /**
  * NEAR paid out by the contract, following its payout rules:
- * - Settled task: every slot reward goes to its agent's owner + the fee to the coordinator (= escrow).
+ * - Settled task: every slot reward goes to its agent's owner, plus the fee to the coordinator (= escrow).
  * - Expired task: only submitted slots are paid; the rest is refunded to the creator (not counted).
  * Earnings per agent are keyed by agent_id.
  */
@@ -131,6 +132,9 @@ export function payouts(tasks: Task[]) {
   }
   return { total, byAgent };
 }
+
+/** Total budget of a task: every slot reward plus the coordinator fee. */
+export const taskBudget = (t: Task) => t.slots.reduce((sum, s) => sum + BigInt(s.reward), BigInt(t.coordinator_fee));
 
 /** ns timestamp string → Date */
 export const nsToDate = (ns: string) => new Date(Number(BigInt(ns) / 1_000_000n));

@@ -9,46 +9,41 @@ export function LiveStats() {
 
   if (data.state === "error") return <ErrorState message={data.message} onRetry={retry} />;
 
-  const ready = data.state === "ready";
-  const stats = ready
-    ? (() => {
-        const settled = data.tasks.filter((t) => t.status === "Settled").length;
-        const { total } = payouts(data.tasks);
-        return [
-          { label: "Registered agents", value: data.agents.length.toString(), note: `${data.agents.filter((a) => a.active).length} active` },
-          { label: "Tasks created", value: data.tasks.length.toString(), note: "escrowed on-chain" },
-          { label: "Tasks settled", value: settled.toString(), note: "paid in full" },
-          { label: "NEAR paid out", value: formatNear(total), note: "to agent owners + coordinator", unit: "Ⓝ" },
-        ];
-      })()
-    : [];
+  const stats =
+    data.state === "ready"
+      ? [
+          { label: "Agents", value: data.agents.length.toString(), note: `${data.agents.filter((a) => a.active).length} active` },
+          { label: "Tasks", value: data.tasks.length.toString(), note: "escrowed on chain" },
+          { label: "Settled", value: data.tasks.filter((t) => t.status === "Settled").length.toString(), note: "paid in full" },
+          { label: "NEAR paid out", value: formatNear(payouts(data.tasks).total), note: "to agent owners and coordinator", accent: true },
+        ]
+      : null;
 
   return (
     <section aria-label="Live contract statistics">
-      <div className="grid grid-cols-2 border-y border-line lg:grid-cols-4">
-        {(ready ? stats : Array.from({ length: 4 }, () => null)).map((s, i) => (
-          <div key={i} className={`border-line px-1 py-6 sm:px-6 ${i % 2 === 1 ? "border-l" : ""} ${i >= 2 ? "border-t lg:border-t-0" : ""} ${i === 2 ? "lg:border-l" : ""}`}>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {(stats ?? Array.from({ length: 4 }, () => null)).map((s, i) => (
+          <div key={i} className={`rounded-2xl border p-5 sm:p-6 ${s?.accent ? "border-fg bg-fg text-white" : "border-line bg-surface"}`}>
             {s ? (
-              <a href={contractUrl} target="_blank" rel="noreferrer" title={`${s.label}: open ${CONTRACT_ID} in the testnet explorer`} className="group block">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted">{s.label}</p>
-                <p className="mt-3 font-mono text-4xl font-medium tabular-nums tracking-tight text-paper transition group-hover:text-signal sm:text-5xl">
+              <a href={contractUrl} target="_blank" rel="noreferrer" aria-label={`${s.label}: ${s.value}. Open the contract in the explorer`} className="group block">
+                <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${s.accent ? "text-white/70" : "text-muted"}`}>{s.label}</p>
+                <p className={`mt-3 font-mono text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl ${s.accent ? "text-green" : "group-hover:text-green-ink"}`}>
                   {s.value}
-                  {s.unit && <span className="ml-1.5 text-2xl text-signal">{s.unit}</span>}
                 </p>
-                <p className="mt-2 text-xs text-faint">{s.note} ↗</p>
+                <p className={`mt-2 text-xs ${s.accent ? "text-white/60" : "text-faint"}`}>{s.note} ↗</p>
               </a>
             ) : (
-              <div>
-                <Skeleton className="h-3 w-28" />
-                <Skeleton className="mt-4 h-11 w-20" />
-                <Skeleton className="mt-3 h-3 w-32" />
+              <div aria-busy>
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="mt-4 h-11 w-16" />
+                <Skeleton className="mt-3 h-3 w-28" />
               </div>
             )}
           </div>
         ))}
       </div>
       <p className="mt-3 text-right font-mono text-[11px] text-faint">
-        {ready ? `read live from ${CONTRACT_ID} · ${data.loadedAt.toLocaleTimeString()}` : "reading contract…"}
+        {data.state === "ready" ? `Read live from ${CONTRACT_ID} at ${data.loadedAt.toLocaleTimeString()}` : "Reading the contract…"}
       </p>
     </section>
   );
