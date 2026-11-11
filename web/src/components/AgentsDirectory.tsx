@@ -78,7 +78,7 @@ function AgentCard({ agent: a, earned }: { agent: Agent; earned: bigint }) {
           <div>
             <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-faint">Owner, gets paid</dt>
             <dd className="mt-1">
-              <Account id={a.owner} />
+              <Account id={a.owner} max={18} />
             </dd>
           </div>
           <div>

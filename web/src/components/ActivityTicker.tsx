@@ -29,7 +29,7 @@ export function ActivityTicker() {
   );
 
   return (
-    <div className="border-y border-line bg-surface">
+    <div className="border-y border-line bg-surface/80">
       <div className="flex h-11 items-center">
         <span className="z-10 flex h-full shrink-0 items-center gap-2 border-r border-line bg-surface px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em]">
           <span className="live-dot h-2 w-2 rounded-full bg-green" aria-hidden />
@@ -45,7 +45,7 @@ export function ActivityTicker() {
         {data.state === "error" && (
           <p role="alert" className="flex-1 truncate px-4 text-xs text-bad">
             Couldn&apos;t read activity from the contract.{" "}
-            <button onClick={retry} className="font-semibold underline underline-offset-2">
+            <button onClick={retry} className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2">
               Retry
             </button>
           </p>
@@ -62,11 +62,11 @@ export function ActivityTicker() {
                       target="_blank"
                       rel="noreferrer"
                       tabIndex={copy ? -1 : undefined}
-                      className="group flex items-center gap-2 whitespace-nowrap px-5 text-[13px] text-fg-2 hover:text-fg"
+                      className="group flex min-h-11 items-center gap-2 whitespace-nowrap px-5 text-[13px] text-fg-2 hover:text-fg"
                     >
                       <span
                         style={roleVars(e.role)}
-                        className={`grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold ${e.kind === "paid" || e.kind === "settled" ? "bg-green-soft text-green-ink" : "role-tag"}`}
+                        className={`grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold ${e.kind === "paid" || e.kind === "settled" ? "bg-green-soft text-green" : "role-tag"}`}
                         aria-hidden
                       >
                         {ICON[e.kind]}

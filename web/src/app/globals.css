@@ -1,47 +1,86 @@
 @import "tailwindcss";
 
-/* Conflux design tokens. Light theme. NEAR brand green (#00EC97) is the single accent.
-   green-ink is a darker green for text on light backgrounds (#00EC97 on white is too low contrast). */
+/* Conflux design tokens. Dark NEAR look: deep green to teal gradient, NEAR brand green (#00EC97)
+   as the single accent, near-white text. Every text/background pair is checked for WCAG AA. */
 @theme {
-  --color-bg: #f7f7f4;
-  --color-surface: #ffffff;
-  --color-fg: #0c0c0d;
-  --color-fg-2: #2b2b2f;
-  --color-muted: #5c5d63;
-  --color-faint: #74757b;
-  --color-line: #e5e5df;
-  --color-line-strong: #d2d2cb;
+  --color-bg: #04241d;
+  --color-surface: #0a3a31;
+  --color-surface-2: #0f463b;
+  --color-fg: #f2fbf7;
+  --color-fg-2: #d6ece3;
+  --color-muted: #a7c9bd;
+  --color-faint: #8fb8aa;
+  --color-line: #1c5146;
+  --color-line-strong: #2d6a5c;
   --color-green: #00ec97;
-  --color-green-ink: #00704b;
-  --color-green-soft: #e2fbf1;
-  --color-bad: #b42318;
+  --color-green-ink: #00ec97;
+  --color-green-soft: rgb(0 236 151 / 0.14);
+  --color-ink: #03140f;
+  --color-bad: #ff9a8f;
 
   --font-display: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
 }
 
+/* One container width for every page and section. */
+@utility container-x {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1rem;
+  @media (min-width: 640px) { padding-inline: 1.5rem; }
+  @media (min-width: 1024px) { padding-inline: 2rem; }
+}
+
 html {
-  background: var(--color-bg);
+  background: #021a15;
   color: var(--color-fg);
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  background: var(--color-bg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgb(0 236 151 / 0.10), transparent 60%),
+    radial-gradient(900px 600px at -10% 30%, rgb(23 217 212 / 0.07), transparent 60%),
+    linear-gradient(170deg, #021a15 0%, #04241d 30%, #05302b 65%, #06383a 100%);
 }
 
 ::selection {
   background: var(--color-green);
-  color: var(--color-fg);
+  color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-fg);
+  outline: 2px solid var(--color-green);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Light island inside the dark theme (glass cards, role chips): tokens switch back to dark-on-light. */
+.light-scope {
+  --color-fg: #0c0c0d;
+  --color-fg-2: #2b2b2f;
+  --color-muted: #45464c;
+  --color-faint: #55565c;
+  --color-line: #e5e5df;
+  --color-line-strong: #d2d2cb;
+  --color-green-ink: #005c3a;
+  --color-green-soft: #e2fbf1;
+  --color-surface: #ffffff;
+  --color-bg: #f7f7f4;
+  color: var(--color-fg);
+}
+.glass {
+  background: rgb(255 255 255 / 0.88);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.7),
+    0 18px 40px -18px rgb(0 0 0 / 0.55);
 }
 
 /* ---- Role colours (set with roleVars()) ------------------------------------ */
@@ -53,9 +92,8 @@ body {
 .role-card {
   background: var(--color-surface);
   box-shadow:
-    inset 0 0 0 1px var(--role-ring),
-    0 1px 2px rgb(12 12 13 / 0.04),
-    0 12px 28px -12px rgb(12 12 13 / 0.18);
+    inset 0 0 0 1px color-mix(in srgb, var(--role-solid) 45%, transparent),
+    0 18px 40px -22px rgb(0 0 0 / 0.6);
 }
 .role-bar {
   background: var(--role-solid);
@@ -67,77 +105,57 @@ body {
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #ececE6 0%, #f6f6f2 50%, #ececE6 100%);
+  background: linear-gradient(90deg, #0c3d33 0%, #145347 50%, #0c3d33 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   border-radius: 6px;
 }
 
-/* ---- Orbit ring (hero) ------------------------------------------------------
-   3D ring: tilt > spin (rotateY) > slot (placed on the ring, then turned back to face the
-   viewer) > face (counter-spin, so cards always face forward) > card (slight tilt). */
-.orbit-3d { display: none; }
-.orbit-flat { display: block; }
-.hero-pad { padding-top: 4rem; padding-bottom: 2.5rem; }
-
-@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-  .orbit-3d { display: block; }
-  .orbit-flat { display: none; }
-  .hero-pad { padding-top: 12rem; padding-bottom: 17rem; }
+/* ---- Hero light beams --------------------------------------------------------- */
+@keyframes beam-drift {
+  0%, 100% { opacity: 0.75; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(2%); }
 }
+.beams g { animation: beam-drift 14s ease-in-out infinite; transform-box: fill-box; }
+.beams g:nth-child(2) { animation-duration: 18s; animation-delay: -6s; }
+.beams g:nth-child(3) { animation-duration: 22s; animation-delay: -11s; }
 
-.orbit-3d {
-  position: absolute;
-  inset: 0;
-  perspective: 2000px;
-  perspective-origin: 50% 45%;
-  pointer-events: none;
-  --dur: 110s;
-  --r: min(560px, 42vw);
-}
-.orbit-tilt {
+/* ---- Orbit ring (hero) -------------------------------------------------------
+   Flat 2D ellipse around the text block. The ring is a circle of radius --rx squashed by --k
+   (= ry / rx); each card is moved onto it, then every rotation and the squash are undone, so
+   cards stay upright and undistorted. Geometry is computed from measured sizes in Orbit.tsx so
+   a card can never reach the text block. */
+.orbit-ring {
   position: absolute;
   left: 50%;
-  top: 52%;
-  transform-style: preserve-3d;
-  transform: rotateX(-20deg) rotateZ(-4deg);
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: scale(1, var(--k));
 }
-.orbit-spin {
-  transform-style: preserve-3d;
-  animation: orbit-spin var(--dur) linear infinite;
-}
-.orbit-slot {
-  position: absolute;
-  transform-style: preserve-3d;
-  transform: rotateY(var(--a)) translateZ(var(--r)) rotateY(calc(var(--a) * -1));
-}
-.orbit-face {
-  transform-style: preserve-3d;
-  animation: orbit-counter var(--dur) linear infinite;
-}
+.orbit-spin { animation: orbit-spin var(--dur, 140s) linear infinite; }
+.orbit-slot { position: absolute; transform: rotate(var(--a)) translateX(var(--rx)) rotate(calc(var(--a) * -1)); }
+.orbit-face { animation: orbit-counter var(--dur, 140s) linear infinite; }
 .orbit-card {
-  pointer-events: auto;
-  transform: translate(-50%, -50%) rotateX(10deg) rotateZ(var(--tilt, 0deg));
-  transition: box-shadow 0.2s, transform 0.2s;
+  position: absolute;
+  /* origin at the anchor point, so un-squashing does not shift the card */
+  transform-origin: 0 0;
+  transform: scale(1, var(--inv-k)) translate(-50%, -50%);
+  transition: transform 0.2s;
 }
 .orbit-card:hover,
 .orbit-card:focus-visible {
-  transform: translate(-50%, -50%) rotateX(0deg) rotateZ(0deg) scale(1.06);
+  transform: scale(1, var(--inv-k)) scale(1.04) translate(-50%, -50%);
 }
-.orbit-3d:has(.orbit-card:hover) :is(.orbit-spin, .orbit-face),
-.orbit-3d:has(.orbit-card:focus-visible) :is(.orbit-spin, .orbit-face) {
+.orbit-ring:has(.orbit-card:hover) :is(.orbit-spin, .orbit-face),
+.orbit-ring:has(.orbit-card:focus-visible) :is(.orbit-spin, .orbit-face) {
   animation-play-state: paused;
 }
-@keyframes orbit-spin { to { transform: rotateY(360deg); } }
-@keyframes orbit-counter { to { transform: rotateY(-360deg); } }
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+@keyframes orbit-counter { to { transform: rotate(-360deg); } }
 
-/* Soft halo so the headline stays readable when cards pass behind it. */
-.hero-halo {
-  background: radial-gradient(ellipse at center, var(--color-bg) 30%, rgb(247 247 244 / 0.85) 50%, rgb(247 247 244 / 0) 72%);
-}
-
-/* ---- Marquee (activity ticker + mobile cards) ------------------------------- */
-.marquee { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+/* ---- Marquee (activity ticker + phone card row) ------------------------------ */
+.marquee { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
 .marquee-track { display: flex; width: max-content; animation: marquee var(--marquee-dur, 80s) linear infinite; }
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track { animation-play-state: paused; }
@@ -150,11 +168,10 @@ body {
 .live-dot { animation: live-pulse 1.8s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton, .live-dot { animation: none; }
+  .skeleton, .live-dot, .beams g, .orbit-spin, .orbit-face { animation: none; }
   .marquee { overflow-x: auto; mask-image: none; }
   .marquee-track { animation: none; }
   .marquee-dup { display: none; }
-  .marquee-wrap .marquee-track { width: auto; flex-wrap: wrap; justify-content: center; }
 }
 
 /* ---- Landing sections (Stage 4.2b) -----------------------------------------
@@ -211,3 +228,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .wire-dot, .coin-run { display: none; }
 }
+
+/* Same vertical rhythm between every landing section. */
+.section-y { padding-block: 5rem; overflow-x: clip; }
+@media (min-width: 1024px) { .section-y { padding-block: 6rem; } }

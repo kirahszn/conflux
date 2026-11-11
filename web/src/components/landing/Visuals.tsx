@@ -7,7 +7,7 @@ import { RoleTag } from "../Tags";
 const shortHex = (h: string, a = 6, b = 4) => (h.length > a + b + 1 ? `${h.slice(0, a)}…${h.slice(-b)}` : h);
 const shortModel = (m: string) => m.split("/").pop() ?? m;
 const iv = (i: number) => ({ "--i": i }) as React.CSSProperties;
-const card = "rounded-3xl border border-line bg-surface shadow-[0_1px_2px_rgb(12_12_13/0.04),0_24px_48px_-24px_rgb(12_12_13/0.18)]";
+const card = "rounded-3xl border border-line-strong/70 bg-surface shadow-[0_24px_48px_-24px_rgb(0_0_0/0.6)]";
 
 // ---- 02 Plan -----------------------------------------------------------------
 export function PlanVisual({ sc }: { sc: Showcase }) {
@@ -31,7 +31,7 @@ export function PlanVisual({ sc }: { sc: Showcase }) {
               <RoleTag role={s.role} />
               <span className="font-mono text-sm font-semibold">{s.reward_near} NEAR</span>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#021a15]">
               <div className="grow role-bar h-full origin-left rounded-full" style={{ width: `${(Number(s.reward_near) / max) * 100}%`, ...iv(i) }} />
             </div>
             <p className="mt-2 text-sm leading-snug text-muted">{s.reason}</p>
@@ -58,8 +58,8 @@ export function AgentsVisual({ sc }: { sc: Showcase }) {
         <li key={c.agent_id} style={roleVars(c.role)} className="flex items-center gap-0">
           <div className="role-card w-[48%] min-w-0 shrink-0 rounded-2xl p-4">
             <RoleTag role={c.role} />
-            <p className="mt-2 truncate font-display text-[15px] font-bold">{c.name}</p>
-            <p className="mt-0.5 truncate font-mono text-[11px] text-muted">{c.agent_id}</p>
+            <p className="mt-2 font-display text-[15px] font-bold">{c.name}</p>
+            <p className="mt-0.5 whitespace-nowrap font-mono text-[11px] text-muted">{shortenAccount(c.agent_id, 19)}</p>
           </div>
           <div className="relative mx-1 h-[2px] min-w-6 flex-1" aria-hidden>
             <div className="grow absolute inset-0 origin-left" style={iv(i)}>
@@ -105,14 +105,14 @@ export function ProofVisual({ sc }: { sc: Showcase }) {
             {rows.map(([k, v]) => (
               <div key={k} className="flex items-center justify-between gap-4 py-2.5">
                 <dt className="text-muted">{k}</dt>
-                <dd className="min-w-0 truncate text-right text-fg">{v}</dd>
+                <dd className="min-w-0 text-right text-fg">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
       </div>
       <div
-        className="stamp pointer-events-none absolute -right-2 -top-5 grid h-24 w-24 place-items-center rounded-full border-[3px] border-green-ink bg-green-soft/90 text-center font-display text-[11px] font-bold uppercase leading-tight tracking-wider text-green-ink shadow-lg sm:-right-5"
+        className="stamp pointer-events-none absolute -top-5 right-2 grid h-24 w-24 place-items-center rounded-full border-[3px] border-green bg-[#021a15]/95 text-center font-display text-[11px] font-bold uppercase leading-tight tracking-wider text-green shadow-lg"
         aria-label="Signed in secure hardware"
         style={{ boxShadow: `0 10px 30px -10px ${col.solid}55` }}
       >
@@ -136,7 +136,7 @@ export function SynthesisVisual({ sc }: { sc: Showcase }) {
           <p className="font-display text-sm font-bold">{d.topic}</p>
           <div className={`mt-3 grid gap-3 ${d.claims.length > 2 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
             {d.claims.map((cl) => (
-              <div key={cl.agent} style={roleVars(roleOf.get(cl.agent))} className="role-tag rounded-2xl p-3">
+              <div key={cl.agent} style={roleVars(roleOf.get(cl.agent))} className="light-scope role-tag rounded-2xl p-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.12em]">{cl.agent}</p>
                 <p className="mt-1 text-sm leading-snug text-fg">{cl.text}</p>
               </div>
@@ -152,18 +152,18 @@ export function SynthesisVisual({ sc }: { sc: Showcase }) {
 export function SettlementVisual({ sc }: { sc: Showcase }) {
   return (
     <div className={`${card} p-5 sm:p-7`}>
-      <div className="flex items-stretch gap-3 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-5">
         <a
           href={explorer.account(sc.contract_id)}
           target="_blank"
           rel="noreferrer"
-          className="flex w-28 shrink-0 flex-col justify-center rounded-2xl bg-fg p-4 text-white transition hover:bg-fg-2 sm:w-36"
+          className="flex min-h-11 shrink-0 flex-wrap items-baseline gap-x-3 rounded-2xl border border-green/40 bg-[#021a15] p-4 text-fg transition hover:border-green sm:w-36 sm:flex-col sm:flex-nowrap sm:justify-center"
           aria-label={`Contract ${sc.contract_id}. Open in explorer`}
         >
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">Escrow</span>
-          <span className="mt-1 font-mono text-2xl font-semibold text-green">{sc.task.budget_near}</span>
-          <span className="text-xs text-white/70">NEAR</span>
-          <span className="mt-3 truncate font-mono text-[10px] text-white/60">{shortenAccount(sc.contract_id, 18)}</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">Escrow</span>
+          <span className="font-mono text-2xl font-semibold text-green sm:mt-1">{sc.task.budget_near}</span>
+          <span className="text-xs text-muted">NEAR</span>
+          <span className="font-mono text-[10px] text-muted sm:mt-3">{shortenAccount(sc.contract_id, 16)}</span>
         </a>
         <ul className="flex min-w-0 flex-1 flex-col justify-between gap-3">
           {sc.payouts.map((p, i) => (
@@ -171,22 +171,22 @@ export function SettlementVisual({ sc }: { sc: Showcase }) {
               <div className="relative h-7 min-w-8 flex-1 overflow-hidden" aria-hidden>
                 <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line-strong" />
                 <div className="coin-run absolute inset-0 flex items-center justify-end" style={iv(i)}>
-                  <span className="rounded-full bg-green px-2 py-0.5 font-mono text-[10px] font-bold text-fg">+{p.amount_near}</span>
+                  <span className="rounded-full bg-green px-2 py-0.5 font-mono text-[10px] font-bold text-ink">+{p.amount_near}</span>
                 </div>
               </div>
               <a
                 href={explorer.account(p.to)}
                 target="_blank"
                 rel="noreferrer"
-                className="arrive w-[46%] shrink-0 rounded-xl border border-line bg-surface px-3 py-2 transition hover:border-fg sm:w-[52%]"
+                className="arrive flex min-h-11 w-[66%] min-w-0 shrink-0 flex-col justify-center rounded-xl border border-line-strong bg-surface-2 px-3 py-2 transition hover:border-green sm:w-[58%]"
                 style={iv(i)}
                 aria-label={`${p.amount_near} NEAR to ${p.to}. Open in explorer`}
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="truncate text-xs font-semibold">{p.label}</span>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-green-ink">+{p.amount_near}</span>
+                <span className="flex flex-wrap items-baseline justify-between gap-x-2">
+                  <span className="text-xs font-semibold">{p.label}</span>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-green">+{p.amount_near}</span>
                 </span>
-                <span className="block truncate font-mono text-[11px] text-muted">{p.to}</span>
+                <span className="block whitespace-nowrap font-mono text-[11px] text-muted">{shortenAccount(p.to, 20)}</span>
               </a>
             </li>
           ))}

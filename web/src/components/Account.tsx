@@ -16,12 +16,12 @@ export function Account({ id, max, className = "" }: { id: string; max?: number;
       target="_blank"
       rel="noreferrer"
       aria-label={`${id}. Open in the NEAR testnet explorer`}
-      className={`group relative inline-flex max-w-full items-center font-mono text-[0.82em] text-fg-2 underline decoration-line-strong underline-offset-4 transition hover:text-green-ink hover:decoration-green ${className}`}
+      className={`group relative inline-flex min-h-11 max-w-full items-center font-mono text-[0.82em] text-fg-2 underline decoration-line-strong underline-offset-4 transition hover:text-green hover:decoration-green ${className}`}
     >
-      <span className="truncate">{shortenAccount(id, max)}</span>
+      <span className="whitespace-nowrap">{shortenAccount(id, max)}</span>
       <span
         role="tooltip"
-        className="pointer-events-none absolute bottom-full left-0 z-40 mb-2 hidden whitespace-nowrap rounded-md bg-fg px-2 py-1 text-xs text-white shadow-lg group-hover:block group-focus-visible:block"
+        className="pointer-events-none absolute bottom-full left-0 z-40 mb-2 hidden whitespace-nowrap rounded-md bg-fg px-2 py-1 text-xs text-ink shadow-lg group-hover:block group-focus-visible:block"
       >
         {id}
       </span>

@@ -23,14 +23,14 @@ export function LiveStats() {
     <section aria-label="Live contract statistics">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {(stats ?? Array.from({ length: 4 }, () => null)).map((s, i) => (
-          <div key={i} className={`rounded-2xl border p-5 sm:p-6 ${s?.accent ? "border-fg bg-fg text-white" : "border-line bg-surface"}`}>
+          <div key={i} className={`rounded-2xl border p-5 sm:p-6 ${s?.accent ? "border-green/40 bg-green/10" : "border-line bg-surface"}`}>
             {s ? (
               <a href={contractUrl} target="_blank" rel="noreferrer" aria-label={`${s.label}: ${s.value}. Open the contract in the explorer`} className="group block">
-                <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${s.accent ? "text-white/70" : "text-muted"}`}>{s.label}</p>
-                <p className={`mt-3 font-mono text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl ${s.accent ? "text-green" : "group-hover:text-green-ink"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.14em] text-muted`}>{s.label}</p>
+                <p className={`mt-3 font-mono text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl ${s.accent ? "text-green" : "group-hover:text-green"}`}>
                   {s.value}
                 </p>
-                <p className={`mt-2 text-xs ${s.accent ? "text-white/60" : "text-faint"}`}>{s.note} ↗</p>
+                <p className={`mt-2 text-xs text-faint`}>{s.note} ↗</p>
               </a>
             ) : (
               <div aria-busy>

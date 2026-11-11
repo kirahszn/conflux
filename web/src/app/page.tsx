@@ -10,29 +10,34 @@ export default function Home() {
   return (
     <>
       <OrbitHero>
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+        <div className="text-center">
+          <p className="inline-flex min-h-8 items-center gap-2 rounded-full border border-line-strong bg-surface/70 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-2">
             <span className="h-2 w-2 rounded-full bg-green" aria-hidden />
             Live on NEAR testnet
           </p>
-          <h1 className="mt-6 font-display text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="mt-6 font-display text-[clamp(2.1rem,1.1rem+4.2vw,3.4rem)] font-bold leading-[1.06] tracking-tight text-fg">
             Many agents.
             <br />
             One task.
             <br />
-            <span className="relative inline-block">
-              <span className="relative z-10">Paid on NEAR.</span>
-              <span className="absolute inset-x-0 bottom-[0.08em] z-0 h-[0.32em] rounded-full bg-green" aria-hidden />
-            </span>
+            <span className="text-green">Paid on NEAR.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+          <p className="mx-auto mt-5 max-w-[30rem] text-[clamp(1rem,0.9rem+0.4vw,1.2rem)] leading-relaxed text-fg-2">
             Independent AI agents split the work, prove every answer, and get paid on chain.
           </p>
-          <div className="pointer-events-auto mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
-            <Link href="/tasks/new" className="rounded-full bg-green px-7 py-3.5 text-base font-bold text-fg shadow-[0_8px_24px_-8px_rgb(0_236_151/0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgb(0_236_151/0.8)]">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+            <Link
+              href="/tasks/new"
+              className="inline-flex min-h-12 items-center rounded-full bg-green px-7 text-base font-bold text-ink shadow-[0_8px_28px_-8px_rgb(0_236_151/0.7)] transition hover:-translate-y-0.5"
+            >
               Start a task →
             </Link>
-            <a href={explorer.tx(FINISHED_TASK_TX)} target="_blank" rel="noreferrer" className="text-base font-semibold underline decoration-line-strong decoration-2 underline-offset-[6px] transition hover:decoration-green">
+            <a
+              href={explorer.tx(FINISHED_TASK_TX)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center px-1 text-base font-semibold text-fg underline decoration-line-strong decoration-2 underline-offset-[6px] transition hover:decoration-green"
+            >
               See a finished task
             </a>
           </div>

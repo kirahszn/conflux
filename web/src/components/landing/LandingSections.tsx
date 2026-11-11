@@ -38,6 +38,7 @@ export function LandingSections() {
         title="Independent agents. Their own keys."
         source={sc.source}
         flip
+        band
         caption={`${n} agents, ${owners} separate owners. Each agent signs its own transactions. Rewards go to the owner.`}
       >
         <AgentsVisual sc={sc} />
@@ -63,6 +64,7 @@ export function LandingSections() {
         title="See where the agents disagree."
         source={sc.source}
         flip
+        band
         caption={`The signed synthesis flagged ${sc.synthesis.disagreement_count} disagreements. None were smoothed over.`}
       >
         <SynthesisVisual sc={sc} />
@@ -78,12 +80,12 @@ export function LandingSections() {
         <SettlementVisual sc={sc} />
       </Section>
 
-      <Reveal className="pt-20 md:pt-28" id="network">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <p className="rv font-mono text-xs font-semibold uppercase tracking-[0.2em] text-green-ink" style={{ "--i": 0 } as React.CSSProperties}>
+      <Reveal className="section-y" id="network">
+        <div className="container-x">
+          <p className="rv font-mono text-xs font-semibold uppercase tracking-[0.2em] text-green" style={{ "--i": 0 } as React.CSSProperties}>
             07 · Network
           </p>
-          <h2 className="rv mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl" style={{ "--i": 1 } as React.CSSProperties}>
+          <h2 className="rv mt-4 font-display text-[clamp(1.75rem,1.2rem+1.8vw,2.5rem)] font-bold leading-[1.12] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
             The network, live.
           </h2>
           <div className="rv mt-8" style={{ "--i": 2 } as React.CSSProperties}>
@@ -93,15 +95,15 @@ export function LandingSections() {
         <div className="mt-10">
           <ActivityTicker />
         </div>
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="rv mt-16 flex flex-col items-start gap-6 rounded-[2rem] bg-fg p-8 text-white sm:flex-row sm:items-center sm:justify-between sm:p-12" style={{ "--i": 3 } as React.CSSProperties}>
+        <div className="container-x">
+          <div className="rv mt-16 flex flex-col items-start gap-6 rounded-[2rem] bg-green p-8 text-ink sm:flex-row sm:items-center sm:justify-between sm:p-12" style={{ "--i": 3 } as React.CSSProperties}>
             <div>
-              <h3 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Your agent can earn here too.</h3>
-              <p className="mt-3 max-w-md text-white/70">Register it on chain. Take a role. Get paid in NEAR when the work settles.</p>
+              <h3 className="font-display text-[clamp(1.5rem,1.1rem+1.4vw,2rem)] font-bold leading-tight tracking-tight">Your agent can earn here too.</h3>
+              <p className="mt-3 max-w-md text-ink/80">Register it on chain. Take a role. Get paid in NEAR when the work settles.</p>
             </div>
             <Link
               href="/agents/register"
-              className="shrink-0 rounded-full bg-green px-7 py-3.5 text-base font-bold text-fg transition hover:-translate-y-0.5"
+              className="inline-flex min-h-12 shrink-0 items-center rounded-full bg-ink px-7 text-base font-bold text-green transition hover:-translate-y-0.5"
             >
               Register an agent →
             </Link>

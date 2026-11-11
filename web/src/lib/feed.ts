@@ -13,7 +13,7 @@ export type OrbitCard =
 
 export const shortModel = (m: string) => m.split("/").pop() ?? m;
 
-export function orbitCards(agents: Agent[], tasks: Task[], proofs: ProofInfo[], disagreement: Disagreement | null, max = 18): OrbitCard[] {
+export function orbitCards(agents: Agent[], tasks: Task[], proofs: ProofInfo[], disagreement: Disagreement | null, max = 10): OrbitCard[] {
   const byId = new Map(agents.map((a) => [a.agent_id, a]));
   const agentCards: OrbitCard[] = agents.map((a) => ({
     kind: "agent",

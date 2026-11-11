@@ -22,10 +22,10 @@ export function Footer() {
     };
   }, []);
 
-  const link = "font-medium text-fg underline decoration-line-strong underline-offset-4 transition hover:decoration-green";
+  const link = "inline-flex min-h-11 items-center font-medium text-fg underline decoration-line-strong underline-offset-4 transition hover:decoration-green";
   return (
-    <footer className="mt-28 border-t border-line bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <footer className="mt-24 border-t border-line bg-[#021a15]/60">
+      <div className="container-x flex flex-col gap-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5">
           <Mark size={22} />
           Conflux, made for the NEAR Hackathon.

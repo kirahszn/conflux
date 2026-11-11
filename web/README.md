@@ -1,4 +1,4 @@
-# Conflux website (Stage 4.2b)
+# Conflux website (Stage 4.2c)
 
 Next.js 16 (App Router) + Tailwind CSS 4. NEAR testnet only, contract `v2.conflux-blessing.testnet`.
 
@@ -17,14 +17,16 @@ npm run typecheck
   per page load (`src/lib/useChainData.ts`).
 - **"NEAR paid out"** follows the contract's payout rules: a Settled task pays its whole escrow
   (rewards plus coordinator fee). An Expired task pays only submitted slots (refunds not counted).
-- **Theme:** light, off-white background, NEAR brand green `#00EC97` as the only accent
-  (`--color-green-ink` `#00704B` for green text on light backgrounds). One colour per role in
-  `src/lib/roles.ts`. Fonts: Unbounded (headlines), Geist (text), JetBrains Mono (ids, hashes, amounts).
-- **Orbit hero** (`src/components/Orbit.tsx`, CSS in `globals.css`): a ring of real cards rotating
-  with CSS 3D transforms. Agents and tasks come from the contract, payments are computed from settled
-  tasks. Proof cards and one "Agents disagree" card come from the coordinator API and are left out
-  when it is unreachable. Hover pauses. Mobile gets one scrolling row. `prefers-reduced-motion`
-  gets a static grid.
+- **Theme:** dark NEAR look. Deep green to teal gradient, soft NEAR green (`#00EC97`) light beams in
+  the hero (inline SVG), near-white text. `.light-scope` switches tokens back to dark-on-light for the
+  glass cards and role chips. Every text/background pair used meets WCAG AA. One colour per role in
+  `src/lib/roles.ts`. Fonts: Unbounded (headlines, fluid `clamp()` sizes), Geist, JetBrains Mono.
+- **Orbit hero** (`src/components/Orbit.tsx`): at most 10 real cards on a flat 2D ellipse around
+  the text block. The ellipse is computed from the measured text and card sizes so a card can never
+  touch the text or leave the hero. Below 1024px (or if it does not fit) the cards become one scrolling
+  row under the buttons. Long values are shortened in code, never clipped by CSS. Hover pauses.
+- **Layout:** one container (`container-x`), one section rhythm (`section-y`). Header collapses to a
+  menu button below 768px. Buttons and links are at least 44px tall.
 - **Activity strip** (`src/lib/feed.ts`): events derived from task records (created, submitted,
   settled, paid, expired). The contract stores no settle or expiry time, so those events show no
   time and are ordered after the last submission (or after the deadline for expiry).
