@@ -10,8 +10,13 @@ export function Footer() {
   const [health, setHealth] = useState<Health>("checking");
   useEffect(() => {
     let alive = true;
+    if (!COORDINATOR_URL) {
+      setHealth("offline");
+      return;
+    }
+    const url = COORDINATOR_URL;
     const check = () =>
-      fetch(`${COORDINATOR_URL}/health`, { signal: AbortSignal.timeout(5000) })
+      fetch(`${url}/health`, { signal: AbortSignal.timeout(5000) })
         .then((r) => alive && setHealth(r.ok ? "online" : "offline"))
         .catch(() => alive && setHealth("offline"));
     check();
@@ -31,13 +36,15 @@ export function Footer() {
           Conflux, made for the NEAR Hackathon.
         </p>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a className={link} href={explorer.account(CONTRACT_ID)} target="_blank" rel="noreferrer" title={CONTRACT_ID}>
-            Contract ↗
-          </a>
+          {CONTRACT_ID && (
+            <a className={link} href={explorer.account(CONTRACT_ID)} target="_blank" rel="noreferrer" title={CONTRACT_ID}>
+              Contract ↗
+            </a>
+          )}
           <a className={link} href={GITHUB_URL} target="_blank" rel="noreferrer">
             GitHub ↗
           </a>
-          <span className="flex items-center gap-2 text-xs" title={COORDINATOR_URL}>
+          <span className="flex items-center gap-2 text-xs" title={COORDINATOR_URL ?? "No coordinator configured"}>
             <span className={`h-2 w-2 rounded-full ${health === "online" ? "bg-green" : health === "offline" ? "bg-bad" : "bg-line-strong"}`} aria-hidden />
             Coordinator {health === "checking" ? "checking" : health === "online" ? "online" : "offline"}
           </span>

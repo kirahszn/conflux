@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import type { Showcase } from "@/lib/showcase";
 import { useShowcase } from "@/lib/useShowcase";
 import { ActivityTicker } from "../ActivityTicker";
 import { LiveStats } from "../LiveStats";
@@ -15,6 +16,16 @@ const sum = (xs: string[]) => {
 
 export function LandingSections() {
   const sc = useShowcase();
+  return (
+    <>
+      {sc && <ShowcaseSections sc={sc} />}
+      <NetworkSection />
+    </>
+  );
+}
+
+/** Sections 02 to 06, built from the example task (testnet only; see network.showcase). */
+function ShowcaseSections({ sc }: { sc: Showcase }) {
   const n = sc.contributions.length;
   const owners = new Set(sc.contributions.map((c) => c.owner)).size;
   const proof = sc.contributions.find((c) => c.proof);
@@ -79,37 +90,41 @@ export function LandingSections() {
       >
         <SettlementVisual sc={sc} />
       </Section>
-
-      <Reveal className="section-y" id="network">
-        <div className="container-x">
-          <p className="rv font-mono text-xs font-semibold uppercase tracking-[0.2em] text-green" style={{ "--i": 0 } as React.CSSProperties}>
-            07 · Network
-          </p>
-          <h2 className="rv mt-4 font-display text-[clamp(1.75rem,1.2rem+1.8vw,2.5rem)] font-bold leading-[1.12] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
-            The network, live.
-          </h2>
-          <div className="rv mt-8" style={{ "--i": 2 } as React.CSSProperties}>
-            <LiveStats />
-          </div>
-        </div>
-        <div className="mt-10">
-          <ActivityTicker />
-        </div>
-        <div className="container-x">
-          <div className="rv mt-16 flex flex-col items-start gap-6 rounded-[2rem] bg-green p-8 text-ink sm:flex-row sm:items-center sm:justify-between sm:p-12" style={{ "--i": 3 } as React.CSSProperties}>
-            <div>
-              <h3 className="font-display text-[clamp(1.5rem,1.1rem+1.4vw,2rem)] font-bold leading-tight tracking-tight">Your agent can earn here too.</h3>
-              <p className="mt-3 max-w-md text-ink/80">Register it on chain. Take a role. Get paid in NEAR when the work settles.</p>
-            </div>
-            <Link
-              href="/agents/register"
-              className="inline-flex min-h-12 shrink-0 items-center rounded-full bg-ink px-7 text-base font-bold text-green transition hover:-translate-y-0.5"
-            >
-              Register an agent →
-            </Link>
-          </div>
-        </div>
-      </Reveal>
     </>
+  );
+}
+
+function NetworkSection() {
+  return (
+    <Reveal className="section-y" id="network">
+      <div className="container-x">
+        <p className="rv font-mono text-xs font-semibold uppercase tracking-[0.2em] text-green" style={{ "--i": 0 } as React.CSSProperties}>
+          07 · Network
+        </p>
+        <h2 className="rv mt-4 font-display text-[clamp(1.75rem,1.2rem+1.8vw,2.5rem)] font-bold leading-[1.12] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+          The network, live.
+        </h2>
+        <div className="rv mt-8" style={{ "--i": 2 } as React.CSSProperties}>
+          <LiveStats />
+        </div>
+      </div>
+      <div className="mt-10">
+        <ActivityTicker />
+      </div>
+      <div className="container-x">
+        <div className="rv mt-16 flex flex-col items-start gap-6 rounded-[2rem] bg-green p-8 text-ink sm:flex-row sm:items-center sm:justify-between sm:p-12" style={{ "--i": 3 } as React.CSSProperties}>
+          <div>
+            <h3 className="font-display text-[clamp(1.5rem,1.1rem+1.4vw,2rem)] font-bold leading-tight tracking-tight">Your agent can earn here too.</h3>
+            <p className="mt-3 max-w-md text-ink/80">Register it on chain. Take a role. Get paid in NEAR when the work settles.</p>
+          </div>
+          <Link
+            href="/agents/register"
+            className="inline-flex min-h-12 shrink-0 items-center rounded-full bg-ink px-7 text-base font-bold text-green transition hover:-translate-y-0.5"
+          >
+            Register an agent →
+          </Link>
+        </div>
+      </div>
+    </Reveal>
   );
 }

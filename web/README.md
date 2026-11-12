@@ -1,15 +1,21 @@
-# Conflux website (Stage 4.2c)
+# Conflux website (Stage 4.3)
 
 Next.js 16 (App Router) + Tailwind CSS 4. NEAR testnet only, contract `v2.conflux-blessing.testnet`.
 
 ```
 npm install
-cp .env.example .env.local     # optional: NEXT_PUBLIC_COORDINATOR_URL (default http://localhost:8787)
+cp .env.example .env.local     # optional: NEXT_PUBLIC_NETWORK and overrides (see src/config/network.ts)
 npm run dev                    # http://localhost:3000 (binds 0.0.0.0 so Windows can reach WSL)
 npm run build && npm start
 npm run typecheck
 ```
 
+- **Network config:** every network-specific value (network id, contract id, RPC, explorer,
+  coordinator URL, account suffix, example task) lives in `src/config/network.ts`. Switch with
+  `NEXT_PUBLIC_NETWORK=testnet|mainnet`. `NEXT_PUBLIC_CONTRACT_ID`, `NEXT_PUBLIC_COORDINATOR_URL` and
+  `NEXT_PUBLIC_NEAR_RPC_URL` override per deployment. The header badge reads the config. A network
+  without a contract shows a "Not configured yet" screen. The example task (task 3 snapshot) is
+  testnet only and hidden on mainnet.
 - **Wallet:** NEAR Connect (`@hot-labs/near-connect`), the connector docs.near.org recommends
   (NEAR Wallet Selector is deprecated). Created in the browser only (`src/lib/wallet.tsx`).
 - **Contract reads:** plain JSON-RPC `call_function` views from the browser (`src/lib/near.ts`).

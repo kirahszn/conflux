@@ -1,16 +1,14 @@
 // Read-only access to the Conflux contract via plain NEAR JSON-RPC (no SDK needed).
-// Testnet only.
+// Network values come from src/config/network.ts (the single network config).
+import { explorer, network } from "@/config/network";
 
-export const NETWORK = "testnet" as const;
-export const CONTRACT_ID = "v2.conflux-blessing.testnet";
-export const RPC_URL = process.env.NEXT_PUBLIC_NEAR_RPC_URL ?? "https://test.rpc.fastnear.com";
-export const COORDINATOR_URL = (process.env.NEXT_PUBLIC_COORDINATOR_URL ?? "http://localhost:8787").replace(/\/$/, "");
-const EXPLORER = "https://testnet.nearblocks.io";
-
-export const explorer = {
-  account: (id: string) => `${EXPLORER}/address/${id}`,
-  tx: (hash: string) => `${EXPLORER}/txns/${hash}`,
-};
+export { explorer, network };
+export const NETWORK = network.networkId;
+/** "" when the contract is not configured for this network (the layout then shows a "not configured" screen). */
+export const CONTRACT_ID = network.contractId ?? "";
+export const RPC_URL = network.rpcUrl;
+/** null when this network has no coordinator; coordinator views treat that as offline. */
+export const COORDINATOR_URL = network.coordinatorUrl;
 
 // ---- Contract types (mirror contract/src/lib.rs JSON) ----------------------
 export type TaskStatus = "Funded" | "InProgress" | "Submitted" | "Settled" | "Cancelled" | "Expired";
@@ -50,6 +48,7 @@ export interface Agent {
 export class RpcError extends Error {}
 
 export async function view<T>(method: string, args: Record<string, unknown> = {}, signal?: AbortSignal): Promise<T> {
+  if (!CONTRACT_ID) throw new RpcError(`No Conflux contract is configured for ${network.label}.`);
   let res: Response;
   try {
     res = await fetch(RPC_URL, {

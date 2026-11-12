@@ -31,7 +31,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const { NearConnector } = await import("@hot-labs/near-connect");
-        const connector = new NearConnector({ network: NETWORK, providers: { testnet: [RPC_URL] } });
+        const connector = new NearConnector({ network: NETWORK, providers: { [NETWORK]: [RPC_URL] } });
         connectorRef.current = connector;
 
         const onSignIn = (p: { wallet: NearWalletBase; accounts: { accountId: string }[] }) => {

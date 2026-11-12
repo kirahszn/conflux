@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { LandingSections } from "@/components/landing/LandingSections";
 import { OrbitHero } from "@/components/Orbit";
-import { explorer } from "@/lib/near";
-
-// Task 3 ("Analyze NEAR Intents") settled end to end: its approve_task transaction.
-const FINISHED_TASK_TX = "8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9";
+import { explorer, network } from "@/config/network";
 
 export default function Home() {
   return (
@@ -13,7 +10,7 @@ export default function Home() {
         <div className="text-center">
           <p className="inline-flex min-h-8 items-center gap-2 rounded-full border border-line-strong bg-surface/70 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-2">
             <span className="h-2 w-2 rounded-full bg-green" aria-hidden />
-            Live on NEAR testnet
+            Live on NEAR {network.label}
           </p>
           <h1 className="mt-6 font-display text-[clamp(2.1rem,1.1rem+4.2vw,3.4rem)] font-bold leading-[1.06] tracking-tight text-fg">
             Many agents.
@@ -32,14 +29,16 @@ export default function Home() {
             >
               Start a task →
             </Link>
-            <a
-              href={explorer.tx(FINISHED_TASK_TX)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center px-1 text-base font-semibold text-fg underline decoration-line-strong decoration-2 underline-offset-[6px] transition hover:decoration-green"
-            >
-              See a finished task
-            </a>
+            {network.showcase && (
+              <a
+                href={explorer.tx(network.showcase.approveTx)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 items-center px-1 text-base font-semibold text-fg underline decoration-line-strong decoration-2 underline-offset-[6px] transition hover:decoration-green"
+              >
+                See a finished task
+              </a>
+            )}
           </div>
         </div>
       </OrbitHero>

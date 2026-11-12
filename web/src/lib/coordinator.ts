@@ -26,11 +26,13 @@ interface CoordTask {
 }
 
 async function getJson<T>(path: string): Promise<T> {
+  if (!COORDINATOR_URL) throw new Error("no coordinator configured for this network");
   const r = await fetch(`${COORDINATOR_URL}${path}`, { signal: AbortSignal.timeout(5000) });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json() as Promise<T>;
 }
 async function getText(path: string): Promise<string> {
+  if (!COORDINATOR_URL) throw new Error("no coordinator configured for this network");
   const r = await fetch(`${COORDINATOR_URL}${path}`, { signal: AbortSignal.timeout(5000) });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.text();

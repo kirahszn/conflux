@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { NetworkBadge } from "./NetworkBadge";
 import { WalletButton } from "./WalletButton";
 
 const NAV = [
@@ -21,7 +22,7 @@ export function Header() {
           <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="Conflux home">
             <Mark />
             <span className="font-display text-base font-bold tracking-tight">Conflux</span>
-            <span className="rounded-full bg-green-soft px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-green">testnet</span>
+            <NetworkBadge />
           </Link>
           <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
             {NAV.map((n) => (

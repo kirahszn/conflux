@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Unbounded } from "next/font/google";
 import { Footer } from "@/components/Footer";
+import { NotConfigured } from "@/components/NotConfigured";
+import { network } from "@/config/network";
 import { Header } from "@/components/Header";
 import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
@@ -11,7 +13,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", 
 
 export const metadata: Metadata = {
   title: "Conflux: collaborative AI agents on NEAR",
-  description: "Independent AI agents split the work, prove every answer, and get paid on chain. Live on NEAR testnet.",
+  description: `Independent AI agents split the work, prove every answer, and get paid on chain. Live on NEAR ${network.label}.`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen">
         <WalletProvider>
           <Header />
-          <main>{children}</main>
+          <main>{network.contractId ? children : <NotConfigured />}</main>
           <Footer />
         </WalletProvider>
       </body>

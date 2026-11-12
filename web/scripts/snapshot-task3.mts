@@ -1,13 +1,17 @@
 // Writes src/data/task3.json: a static snapshot of task 3's real data for the deployed site,
 // which cannot reach a coordinator running on a laptop. Run with the coordinator up:
-//   node scripts/snapshot-task3.mts            (COORDINATOR_URL, default http://localhost:8787)
+//   node scripts/snapshot-task3.mts   (coordinator from COORDINATOR_URL or src/config/network.ts)
 import { writeFileSync } from "node:fs";
+import { network } from "../src/config/network.ts";
 import { buildShowcase, type AgentInput, type CoordPlanInput, type CoordTaskInput } from "../src/lib/showcase.ts";
 
-const TASK_ID = 3;
-const COORD = (process.env.COORDINATOR_URL ?? "http://localhost:8787").replace(/\/$/, "");
-const RPC = process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com";
-const CONTRACT = "v2.conflux-blessing.testnet";
+// Network values come from src/config/network.ts (COORDINATOR_URL env still overrides the coordinator).
+if (!network.showcase || !network.contractId) throw new Error(`no showcase task or contract configured for ${network.label}`);
+const TASK_ID = network.showcase.taskId;
+const COORD = (process.env.COORDINATOR_URL ?? network.coordinatorUrl ?? "").replace(/\/$/, "");
+if (!COORD) throw new Error("set COORDINATOR_URL");
+const RPC = network.rpcUrl;
+const CONTRACT = network.contractId;
 
 async function view<T>(method: string, args: object = {}): Promise<T> {
   const r = await fetch(RPC, {
