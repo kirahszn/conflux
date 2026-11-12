@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
-/* Conflux design tokens. Dark NEAR look: deep green to teal gradient, NEAR brand green (#00EC97)
-   as the single accent, near-white text. Every text/background pair is checked for WCAG AA. */
+/* Conflux design tokens. Product dashboard: deep charcoal, subtle green illumination, NEAR green
+   (#00EC97) as the single accent, role colours for agents. Every text/background pair used is
+   checked for WCAG AA. The "What is Conflux" page (/about) keeps its green-teal look via .theme-landing. */
 @theme {
-  --color-bg: #04241d;
-  --color-surface: #0a3a31;
-  --color-surface-2: #0f463b;
-  --color-fg: #f2fbf7;
-  --color-fg-2: #d6ece3;
-  --color-muted: #a7c9bd;
-  --color-faint: #8fb8aa;
-  --color-line: #1c5146;
-  --color-line-strong: #2d6a5c;
+  --color-bg: #0a0c0b;
+  --color-surface: #111413;
+  --color-surface-2: #171b19;
+  --color-fg: #edf3f0;
+  --color-fg-2: #c8d2cd;
+  --color-muted: #9ca8a2;
+  --color-faint: #85918b;
+  --color-line: #1f2522;
+  --color-line-strong: #2c3430;
   --color-green: #00ec97;
   --color-green-ink: #00ec97;
-  --color-green-soft: rgb(0 236 151 / 0.14);
+  --color-green-soft: rgb(0 236 151 / 0.12);
   --color-ink: #03140f;
   --color-bad: #ff9a8f;
 
@@ -34,7 +35,7 @@
 }
 
 html {
-  background: #021a15;
+  background: var(--color-bg);
   color: var(--color-fg);
   color-scheme: dark;
 }
@@ -43,6 +44,26 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgb(0 236 151 / 0.07), transparent 65%),
+    radial-gradient(700px 400px at 100% 0%, rgb(23 217 212 / 0.035), transparent 60%),
+    var(--color-bg);
+  background-attachment: fixed;
+}
+
+/* The landing ("What is Conflux") keeps the Stage 4.2c green-teal look, scoped to its wrapper. */
+.theme-landing {
+  --color-bg: #04241d;
+  --color-surface: #0a3a31;
+  --color-surface-2: #0f463b;
+  --color-fg: #f2fbf7;
+  --color-fg-2: #d6ece3;
+  --color-muted: #a7c9bd;
+  --color-faint: #8fb8aa;
+  --color-line: #1c5146;
+  --color-line-strong: #2d6a5c;
+  --color-green-soft: rgb(0 236 151 / 0.14);
+  color: var(--color-fg);
   background:
     radial-gradient(1200px 700px at 85% -10%, rgb(0 236 151 / 0.10), transparent 60%),
     radial-gradient(900px 600px at -10% 30%, rgb(23 217 212 / 0.07), transparent 60%),
@@ -105,7 +126,7 @@ body {
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #0c3d33 0%, #145347 50%, #0c3d33 100%);
+  background: linear-gradient(90deg, #151917 0%, #1e2421 50%, #151917 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   border-radius: 6px;

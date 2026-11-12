@@ -186,7 +186,7 @@ export function SettlementVisual({ sc }: { sc: Showcase }) {
                   <span className="text-xs font-semibold">{p.label}</span>
                   <span className="shrink-0 font-mono text-sm font-semibold text-green">+{p.amount_near}</span>
                 </span>
-                <span className="block whitespace-nowrap font-mono text-[11px] text-muted">{shortenAccount(p.to, 20)}</span>
+                <span className="block whitespace-nowrap font-mono text-[11px] text-muted">{shortenAccount(p.to, 16)}</span>
               </a>
             </li>
           ))}

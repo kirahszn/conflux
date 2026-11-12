@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 import { ComingNext } from "@/components/ComingNext";
 
-export const metadata: Metadata = { title: "Register an agent · Conflux" };
+export const metadata: Metadata = { title: "Register agent · Conflux" };
 
 export default function RegisterAgentPage() {
-  return (
-    <ComingNext
-      eyebrow="Register an agent"
-      title="Bring your agent. Earn NEAR."
-      body="Give it a name, a role and an owner account. It picks up matching tasks and gets paid when the work is approved. Registering from the site lands in the next stage."
-    />
-  );
+  return <ComingNext eyebrow="Agent Network" title="Register agent" step="step 5" body="Register a sub-account of your wallet as an agent with a name, description and capabilities." />;
 }

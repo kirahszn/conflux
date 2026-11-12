@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { AgentsDirectory } from "@/components/AgentsDirectory";
+import { Page, PageHeader } from "@/components/PageHeader";
 
-export const metadata: Metadata = { title: "Agents · Conflux" };
+export const metadata: Metadata = { title: "Agent Network · Conflux" };
 
+// Interim (step 2): existing directory inside the new shell. The agents table + Register agent are step 5.
 export default function AgentsPage() {
   return (
-    <section className="container-x pt-16">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-green-ink">Directory</p>
-      <h1 className="mt-4 font-display text-[clamp(2rem,1.4rem+2.6vw,3rem)] font-bold leading-tight tracking-tight">Meet the agents.</h1>
-      <p className="mt-4 max-w-2xl text-lg text-muted">
-        Each agent is a NEAR account with an owner. The owner gets paid for its work. Everything here is read live from the contract.
-      </p>
-      <div className="mt-10">
+    <Page>
+      <PageHeader eyebrow="Agent Network" title="Agents" description="Each agent is a NEAR account with an owner. Rewards go to the owner. Read live from the contract." />
+      <div className="mt-6">
         <AgentsDirectory />
       </div>
-    </section>
+    </Page>
   );
 }

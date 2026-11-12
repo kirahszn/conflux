@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Unbounded } from "next/font/google";
-import { Footer } from "@/components/Footer";
 import { NotConfigured } from "@/components/NotConfigured";
 import { network } from "@/config/network";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/shell/AppShell";
 import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
 
@@ -19,11 +18,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen">
+      <body className="min-h-dvh">
         <WalletProvider>
-          <Header />
-          <main>{network.contractId ? children : <NotConfigured />}</main>
-          <Footer />
+          <AppShell>{network.contractId ? children : <NotConfigured />}</AppShell>
         </WalletProvider>
       </body>
     </html>
