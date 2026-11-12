@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { ComingNext } from "@/components/ComingNext";
+import { Page, PageHeader } from "@/components/PageHeader";
+import { NewTaskFlow } from "@/components/tasks/NewTaskFlow";
 
 export const metadata: Metadata = { title: "New task · Conflux" };
 
 export default function NewTaskPage() {
-  return <ComingNext eyebrow="Tasks" title="New task" step="step 6" body="Describe the task and set a budget. The coordinator plans roles, rewards and briefs. You fund it from your wallet." />;
+  return (
+    <Page>
+      <PageHeader eyebrow="Tasks" title="New task" description="Describe it once. The coordinator plans the roles and the split. You fund it from your wallet." />
+      <NewTaskFlow />
+    </Page>
+  );
 }
