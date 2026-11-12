@@ -1,10 +1,11 @@
 "use client";
-// NEAR wallet login via NEAR Connect (@hot-labs/near-connect), the connector docs.near.org
-// recommends. Testnet only. The connector is created in the browser after mount, never
-// during server rendering.
+// NEAR wallet login and signing via NEAR Connect (@hot-labs/near-connect), the connector
+// docs.near.org recommends. Network from src/config/network.ts. The connector is created in the
+// browser after mount, never during server rendering.
 import type { NearConnector, NearWalletBase } from "@hot-labs/near-connect";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { NETWORK, RPC_URL } from "./near";
+import { callContract, type CallParams, type SigningWallet, type TxResult } from "./tx";
 
 interface WalletState {
   ready: boolean; // connector initialised and session restored
@@ -13,6 +14,8 @@ interface WalletState {
   error: string | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  /** Sends one FunctionCall to the Conflux contract, signed by the connected account. */
+  call: (p: CallParams) => Promise<TxResult>;
 }
 
 const WalletContext = createContext<WalletState | null>(null);
@@ -101,8 +104,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const call = useCallback(
+    async (p: CallParams): Promise<TxResult> => {
+      const wallet = walletRef.current;
+      if (!wallet || !accountId) return { ok: false, txHash: null, error: "Connect a wallet first." };
+      return callContract(wallet as unknown as SigningWallet, accountId, p);
+    },
+    [accountId],
+  );
+
   return (
-    <WalletContext.Provider value={{ ready, accountId, busy, error, signIn, signOut }}>{children}</WalletContext.Provider>
+    <WalletContext.Provider value={{ ready, accountId, busy, error, signIn, signOut, call }}>{children}</WalletContext.Provider>
   );
 }
 

@@ -91,6 +91,44 @@ async function all<T>(method: string, signal?: AbortSignal): Promise<T[]> {
 export const getAllAgents = (signal?: AbortSignal) => all<Agent>("get_agents", signal);
 export const getAllTasks = (signal?: AbortSignal) => all<Task>("get_tasks", signal);
 export const getCoordinator = (signal?: AbortSignal) => view<string>("get_coordinator", {}, signal);
+export const getTask = (id: number, signal?: AbortSignal) => view<Task | null>("get_task", { task_id: id }, signal);
+
+/** Account balance (yocto) or null if the account does not exist. */
+export async function viewAccount(accountId: string): Promise<{ amount: string; locked: string; storage_usage: number } | null> {
+  const res = await fetch(RPC_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(15_000),
+    body: JSON.stringify({ jsonrpc: "2.0", id: "acc", method: "query", params: { request_type: "view_account", finality: "final", account_id: accountId } }),
+  });
+  const j = await res.json();
+  const err = j.error ?? j.result?.error;
+  if (err) {
+    if (JSON.stringify(err).includes("UNKNOWN_ACCOUNT") || JSON.stringify(err).includes("does not exist")) return null;
+    throw new RpcError(typeof err === "string" ? err : (err.data ?? err.message ?? "RPC error"));
+  }
+  return { amount: j.result.amount, locked: j.result.locked, storage_usage: j.result.storage_usage };
+}
+
+/** Finds the newest task by `creator` with this description hash (fallback when a wallet returns no value). */
+export async function findTaskByHash(creator: string, descriptionHash: string): Promise<Task | null> {
+  const tasks = await getAllTasks();
+  return [...tasks].reverse().find((t) => t.creator === creator && t.description_hash === descriptionHash) ?? null;
+}
+
+/** sha256 hex of UTF-8 text (WebCrypto; same as the coordinator's description hash). */
+export async function sha256Hex(text: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** "0.03" NEAR → yocto string (exact decimal, max 24 decimals). */
+export function nearToYocto(near: string): string {
+  const m = /^(\d+)(?:\.(\d{1,24}))?$/.exec(near.trim());
+  if (!m) throw new Error(`not a NEAR amount: ${near}`);
+  return (BigInt(m[1]!) * YOCTO_BI + BigInt((m[2] ?? "").padEnd(24, "0") || "0")).toString();
+}
+const YOCTO_BI = 10n ** 24n;
 
 // ---- Money -----------------------------------------------------------------
 const YOCTO = 10n ** 24n;
