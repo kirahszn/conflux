@@ -25,6 +25,8 @@ export interface NetworkConfig {
   accountSuffix: string;
   /** Real example task for the "What is Conflux" page (snapshot in src/data/task3.json). Testnet only. */
   showcase: { taskId: number; approveTx: string } | null;
+  /** Mainnet only: link to the earlier testnet runs (testnet explorer), shown while mainnet has no finished task. */
+  earlierRuns: { label: string; url: string } | null;
 }
 
 const NETWORKS: Record<NetworkId, NetworkConfig> = {
@@ -40,6 +42,7 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
     accountSuffix: ".testnet",
     // Task 3 "Analyze NEAR Intents": settled end to end; this is its approve_task transaction.
     showcase: { taskId: 3, approveTx: "8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9" },
+    earlierRuns: null,
   },
   mainnet: {
     networkId: "mainnet",
@@ -52,6 +55,7 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
     coordinatorUrl: null, // set when the mainnet coordinator is deployed (or via NEXT_PUBLIC_COORDINATOR_URL)
     accountSuffix: ".near",
     showcase: null,
+    earlierRuns: { label: "Earlier testnet runs", url: "https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet" },
   },
 };
 

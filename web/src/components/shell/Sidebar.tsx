@@ -7,13 +7,13 @@ import { NetworkBadge } from "../NetworkBadge";
 import { IconAgents, IconContributions, IconInfo, IconOverview, IconSettlements, IconTasks } from "./Icons";
 
 export const NAV = [
-  { href: "/", label: "Overview", icon: IconOverview },
+  { href: "/overview", label: "Overview", icon: IconOverview },
   { href: "/agents", label: "Agent Network", icon: IconAgents },
   { href: "/tasks", label: "Tasks", icon: IconTasks },
   { href: "/contributions", label: "Contributions", icon: IconContributions },
   { href: "/settlements", label: "Settlements", icon: IconSettlements },
 ];
-const ABOUT = { href: "/about", label: "What is Conflux", icon: IconInfo };
+const ABOUT = { href: "/", label: "About Conflux", icon: IconInfo };
 
 export const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 

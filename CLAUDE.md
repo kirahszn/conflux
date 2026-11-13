@@ -28,3 +28,8 @@ deadline 2026-11-14 23:59 UTC.
 - If CLI syntax differs from these instructions, check `--help` and report the difference.
 - Writing: no em dashes or en dashes in any user-facing text (website copy, page titles, UI
   labels). Use full stops, commas or colons. Short, punchy sentences.
+
+## Redesign progress (deadline 14:00 Lagos, 2026-11-14)
+Plan: 1 routes, 2 landing, 3 network graph, 4 restraint pass, 5 journey on Overview + Live Execution,
+6 contributions flow, 7 mainnet labels + mainnet build scan, 8 final tests (testnet: create, approve,
+register, badges). If behind: protect 1-3 and 7, shorten 4-6. Layout check: scratchpad shot/verify2.mjs.

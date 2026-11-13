@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Footer } from "../Footer";
@@ -20,6 +21,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // The landing page has its own slim header and no sidebar.
+  if (path === "/") {
+    return (
+      <div className="flex min-h-dvh flex-col">
+        <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+            <Brand />
+            <Link href="/overview" className="inline-flex min-h-11 items-center rounded-lg border border-line-strong px-4 text-sm font-medium text-fg hover:border-green hover:text-green">
+              Open app
+            </Link>
+          </div>
+          <OfflineBanner />
+        </header>
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh">
