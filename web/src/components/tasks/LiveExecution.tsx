@@ -19,6 +19,7 @@ import { shortenAccount } from "../Account";
 import { Page, PageHeader } from "../PageHeader";
 import { ReportView } from "../ReportView";
 import { VerifyBadge, verifyState, type VerifyState } from "../VerifyBadge";
+import { TaskGraph } from "../graph/LiveGraphs";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag, StatusPill } from "../Tags";
 import { TxButton } from "../TxButton";
@@ -67,6 +68,8 @@ export function LiveExecution({ idParam }: { idParam: string }) {
 
   const agents = new Map<string, Agent>(chain.data.state === "ready" ? chain.data.agents.map((a) => [a.agent_id, a]) : []);
   const coordinator = chain.data.state === "ready" ? chain.data.coordinator : "";
+  // This task from the fast 4s poll, the rest from the shared chain data.
+  const allTasks = chain.data.state === "ready" ? chain.data.tasks.map((t) => (t.id === task.id ? task : t)) : [task];
   const view = coord.state === "ready" ? coord.view : null;
   const active = task.status === "Funded" || task.status === "InProgress" || task.status === "Submitted";
   const snap = !view && network.showcase?.taskId === task.id ? (snapshot as Showcase) : null;
@@ -104,6 +107,14 @@ export function LiveExecution({ idParam }: { idParam: string }) {
       <div className="mt-6 xl:hidden">
         <Actions task={task} now={now} onDone={refresh} />
       </div>
+
+      <section aria-labelledby="who" className="mt-6">
+        <h2 id="who" className="text-sm font-semibold">Who is working on this task</h2>
+        <p className="mt-1 text-xs text-muted">Owners, their agents, the shared task, its creator and the coordinator. Lines are on-chain relationships. Select one to inspect it.</p>
+        <div className="mt-3">
+          <TaskGraph task={task} agents={[...agents.values()]} tasks={allTasks} coordinator={coordinator} />
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-6">
