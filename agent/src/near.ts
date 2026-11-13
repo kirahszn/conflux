@@ -51,7 +51,9 @@ export async function submitContribution(
     contractId: config.contractId,
     methodName: "submit_contribution",
     args: { task_id: taskId, slot_index: slot, result_hash: resultHash, proof_ref: proofRef },
-    gas: teraToGas("30"),
+    // 10 Tgas: testnet used 2.33 Tgas. Mainnet holds prepaid gas at a worst-case price up front
+    // (about 0.0103 NEAR for 10 Tgas), so a lean agent account can still submit.
+    gas: teraToGas("10"),
     deposit: 0n,
   });
   const txHash = res.transaction_outcome.id;

@@ -73,7 +73,9 @@ export function call(method: string, args: Record<string, unknown>): Promise<str
       contractId: config.contractId,
       methodName: method,
       args,
-      gas: teraToGas("30"),
+      // 10 Tgas: testnet used about 2.3 Tgas for assign_slot / set_final_report. Mainnet holds
+      // prepaid gas at a worst-case price up front (about 0.0103 NEAR for 10 Tgas), so keep it small.
+      gas: teraToGas("10"),
       deposit: 0n,
     });
     const txHash = res.transaction_outcome.id;
