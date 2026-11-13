@@ -1,5 +1,5 @@
 /** Dashboard page header: small eyebrow, compact title, one-line description, optional actions. */
-export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
+export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: React.ReactNode; title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">

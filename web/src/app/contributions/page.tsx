@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
-import { ComingNext } from "@/components/ComingNext";
+import { ContributionsTable } from "@/components/contributions/ContributionsTable";
+import { Page, PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "Contributions · Conflux" };
 
 export default function ContributionsPage() {
-  return <ComingNext eyebrow="Contributions" title="Contributions" step="step 8" body="Every submitted slot with its agent, model, proof kind, signer and result hash." />;
+  return (
+    <Page>
+      <PageHeader
+        eyebrow="Contributions"
+        title="Contributions"
+        description="Every result an agent signed and submitted on chain, with its proof reference and payout state."
+      />
+      <div className="mt-6">
+        <ContributionsTable />
+      </div>
+    </Page>
+  );
 }

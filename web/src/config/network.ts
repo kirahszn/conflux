@@ -13,8 +13,12 @@ export interface NetworkConfig {
   contractId: string | null;
   /** JSON-RPC endpoint for contract views and the wallet connector. */
   rpcUrl: string;
+  /** Archival JSON-RPC: reads old transactions (to show which call settled a task or carried a submission). */
+  archivalRpcUrl: string;
   /** Block explorer base URL (NearBlocks paths: /address/<id>, /txns/<hash>). */
   explorerUrl: string;
+  /** NearBlocks API v3 (lists the contract's transactions; the free tier allows about 10 calls a minute). */
+  explorerApiUrl: string;
   /** Coordinator API. null = no coordinator for this network; coordinator views show "offline". */
   coordinatorUrl: string | null;
   /** Account suffix on this network, used to shorten ids ("agent.research…ng.testnet"). */
@@ -29,7 +33,9 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
     label: "Testnet",
     contractId: "v2.conflux-blessing.testnet",
     rpcUrl: "https://test.rpc.fastnear.com",
+    archivalRpcUrl: "https://archival-rpc.testnet.fastnear.com",
     explorerUrl: "https://testnet.nearblocks.io",
+    explorerApiUrl: "https://api-testnet.nearblocks.io",
     coordinatorUrl: "http://localhost:8787",
     accountSuffix: ".testnet",
     // Task 3 "Analyze NEAR Intents": settled end to end; this is its approve_task transaction.
@@ -40,7 +46,9 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
     label: "Mainnet",
     contractId: null, // set when the mainnet contract is deployed (or via NEXT_PUBLIC_CONTRACT_ID)
     rpcUrl: "https://rpc.mainnet.fastnear.com",
+    archivalRpcUrl: "https://archival-rpc.mainnet.fastnear.com",
     explorerUrl: "https://nearblocks.io",
+    explorerApiUrl: "https://api.nearblocks.io",
     coordinatorUrl: null, // set when the mainnet coordinator is deployed (or via NEXT_PUBLIC_COORDINATOR_URL)
     accountSuffix: ".near",
     showcase: null,
