@@ -46,7 +46,7 @@ export function ContributionDetail({ taskParam, slotParam }: { taskParam: string
   }, [key]);
 
   const title = slot ? `${slot.role[0]!.toUpperCase()}${slot.role.slice(1)} contribution` : "Contribution";
-  const header = <PageHeader eyebrow={<Link href="/contributions" className="inline-flex min-h-11 items-center hover:underline">Contributions</Link>} title={title} description={task ? <>Task <Link href={`/tasks/${task.id}`} className="text-fg-2 underline decoration-line-strong underline-offset-4 hover:text-green"><span className="font-mono">#{task.id}</span> {task.title}</Link></> : undefined} />;
+  const header = <PageHeader eyebrow={<Link href="/contributions" className="inline-flex min-h-11 items-center hover:underline">Contributions</Link>} title={title} description={task ? <>Task <Link href={`/tasks/${task.id}`} className="inline-flex min-h-11 items-center gap-1 text-fg-2 underline decoration-line-strong underline-offset-4 hover:text-green"><span className="font-mono">#{task.id}</span> {task.title}</Link></> : undefined} />;
 
   if (taskId === null || slotIndex === null || taskData.state === "missing" || (task && !slot)) {
     return (
@@ -54,7 +54,7 @@ export function ContributionDetail({ taskParam, slotParam }: { taskParam: string
         {header}
         <div className="mt-6">
           <EmptyState title="No such contribution.">
-            The contract has no {taskId === null ? "task with that id" : `slot ${slotParam} on task ${taskParam}`}. <Link href="/contributions" className="text-green underline underline-offset-2">See all contributions</Link>.
+            The contract has no {taskId === null ? "task with that id" : `slot ${slotParam} on task ${taskParam}`}. <Link href="/contributions" className="inline-flex min-h-11 items-center text-green underline underline-offset-2">See all contributions</Link>.
           </EmptyState>
         </div>
       </Page>
@@ -94,7 +94,7 @@ export function ContributionDetail({ taskParam, slotParam }: { taskParam: string
         <div className="mt-6">
           <EmptyState title="Nothing submitted for this slot yet.">
             {slot.agent_id ? `${agent?.name ?? slot.agent_id} is assigned to the ${slot.role} role.` : `The ${slot.role} role has no agent yet.`}{" "}
-            <Link href={`/tasks/${task.id}`} className="text-green underline underline-offset-2">Follow the task live</Link>.
+            <Link href={`/tasks/${task.id}`} className="inline-flex min-h-11 items-center text-green underline underline-offset-2">Follow the task live</Link>.
           </EmptyState>
         </div>
       </Page>

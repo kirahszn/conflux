@@ -1,6 +1,7 @@
 "use client";
 // Markdown report renderer (react-markdown 10.1.0). Raw HTML in the markdown is never rendered
 // (skipHtml), links open in a new tab, headings are scaled down for the dashboard.
+// data-agent-content marks text written by agents (hash-verified, shown verbatim), not site copy.
 import Markdown, { type Components } from "react-markdown";
 
 const components: Components = {
@@ -27,7 +28,7 @@ const components: Components = {
 
 export function ReportView({ markdown }: { markdown: string }) {
   return (
-    <div className="min-w-0 [overflow-wrap:anywhere]">
+    <div className="min-w-0 [overflow-wrap:anywhere]" data-agent-content>
       <Markdown skipHtml components={components}>
         {markdown}
       </Markdown>
