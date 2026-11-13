@@ -33,3 +33,4 @@ deadline 2026-11-14 23:59 UTC.
 Plan: 1 routes, 2 landing, 3 network graph, 4 restraint pass, 5 journey on Overview + Live Execution,
 6 contributions flow, 7 mainnet labels + mainnet build scan, 8 final tests (testnet: create, approve,
 register, badges). If behind: protect 1-3 and 7, shorten 4-6. Layout check: scratchpad shot/verify2.mjs.
+- Stages 1-2 DONE (88bce17): landing at /, Overview at /overview, /about -> /. Next: stage 3 network graph.
