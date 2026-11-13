@@ -8,3 +8,5 @@ coordinator/data/
 agent/state/
 web/next-env.d.ts
 *.tsbuildinfo
+coordinator/data-mainnet/
+agent/state-mainnet/

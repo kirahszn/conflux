@@ -160,7 +160,7 @@ export function start() {
       (config.dryRun ? ", DRY_RUN=true (placeholder answers, no AI)" : ""),
   );
   log(
-    `config: signing key from ${config.keySource}; NEAR AI key from ${config.nearAiKeySource}; ` +
+    `config: ${config.network.toUpperCase()}; signing key from ${config.keySource}; NEAR AI key from ${config.nearAiKeySource}; ` +
       `env file ${config.envFile ?? "none"}; state ${config.stateFile}; coordinator ${config.coordinatorUrl}`,
   );
   void tick();

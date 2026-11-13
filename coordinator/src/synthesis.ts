@@ -119,7 +119,7 @@ export function assemble(task: Task, contributions: Contribution[], synth: Synth
     out.push(demote(c.text.trimEnd(), 3), "");
   }
   out.push("## Verification", "");
-  out.push(`- **Contract:** \`${config.contractId}\` (NEAR testnet)`);
+  out.push(`- **Contract:** \`${config.contractId}\` (${config.networkLabel})`);
   out.push(`- **Task id:** ${task.id}`);
   for (const c of contributions) {
     out.push(

@@ -7,13 +7,15 @@
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { assertAccountsOnNetwork, NETWORK, NETWORK_DEFAULTS } from "./network.ts";
 
 const AGENT_DIR = join(import.meta.dirname, "..");
 const name = process.argv[2] ?? process.env.AGENT_NAME;
 if (!name || !/^[a-z0-9_-]+$/.test(name)) {
   throw new Error("Agent name missing: npm start -- <name>  (or set AGENT_NAME), e.g. research");
 }
-const envFile = join(AGENT_DIR, `.env.${name}`);
+// testnet: agent/.env.<name>   mainnet: agent/.env.mainnet.<name> (testnet files are never read on mainnet).
+const envFile = join(AGENT_DIR, NETWORK === "mainnet" ? `.env.mainnet.${name}` : `.env.${name}`);
 const envFileUsed = existsSync(envFile);
 if (envFileUsed) process.loadEnvFile(envFile); // never overrides variables already set
 
@@ -35,6 +37,8 @@ const bool = (key: string, dflt: boolean) => {
 };
 
 const agentId = required("AGENT_ID");
+const contractId = required("CONTRACT_ID");
+assertAccountsOnNetwork({ AGENT_ID: agentId, CONTRACT_ID: contractId });
 
 /** AGENT_PRIVATE_KEY (or <NAME>_AGENT_PRIVATE_KEY), else the NEAR CLI legacy keychain file. */
 function loadKey(): { key: `ed25519:${string}`; source: string } {
@@ -44,7 +48,7 @@ function loadKey(): { key: `ed25519:${string}`; source: string } {
     const src = process.env[`${envPrefix}AGENT_PRIVATE_KEY`] ? `${envPrefix}AGENT_PRIVATE_KEY` : "AGENT_PRIVATE_KEY";
     return { key: fromEnv as `ed25519:${string}`, source: `env ${src}` };
   }
-  const keyPath = join(homedir(), ".near-credentials", "testnet", `${agentId}.json`);
+  const keyPath = join(homedir(), ".near-credentials", NETWORK, `${agentId}.json`);
   if (!existsSync(keyPath)) throw new Error(`No ${envPrefix}AGENT_PRIVATE_KEY env var and no key file at ${keyPath}`);
   const k = (JSON.parse(readFileSync(keyPath, "utf8")) as { private_key?: string }).private_key;
   if (!k?.startsWith("ed25519:")) throw new Error(`No ed25519 private_key in ${keyPath}`);
@@ -70,16 +74,17 @@ if (!dryRun && !ai.key) throw new Error("NEARAI_API_KEY is not set (env var or r
 const role = process.env.ROLE ?? name;
 const promptPath = join(AGENT_DIR, "prompts", `${role}.md`);
 if (!existsSync(promptPath)) throw new Error(`Missing role prompt ${promptPath}`);
-/** DATA_DIR, else the Railway volume mount, else agent/state */
-const dataDir = process.env.DATA_DIR ?? process.env.RAILWAY_VOLUME_MOUNT_PATH ?? join(AGENT_DIR, "state");
+/** DATA_DIR, else the Railway volume mount, else agent/state (testnet) or agent/state-mainnet (mainnet) */
+const dataDir = process.env.DATA_DIR ?? process.env.RAILWAY_VOLUME_MOUNT_PATH ?? join(AGENT_DIR, NETWORK === "mainnet" ? "state-mainnet" : "state");
 
 export const config = {
   name,
+  network: NETWORK,
   agentId,
   role,
-  contractId: required("CONTRACT_ID"),
+  contractId,
   coordinatorUrl: required("COORDINATOR_URL").replace(/\/$/, ""),
-  rpcUrl: process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com",
+  rpcUrl: process.env.NEAR_RPC_URL ?? NETWORK_DEFAULTS.rpcUrl,
   model: process.env.MODEL ?? "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   gatherMaxTokens: Number(process.env.GATHER_MAX_TOKENS ?? 1500),
   writeMaxTokens: Number(process.env.WRITE_MAX_TOKENS ?? 3000),
