@@ -78,6 +78,9 @@ export interface ActivityEvent {
   at: Date | null;
   sortKey: bigint; // ns
   href: string;
+  taskId: number;
+  /** slot index for submissions and slot payouts */
+  slot?: number;
 }
 
 export function activity(agents: Agent[], tasks: Task[], coordinator: string): ActivityEvent[] {
@@ -87,6 +90,7 @@ export function activity(agents: Agent[], tasks: Task[], coordinator: string): A
     const created = BigInt(t.created_at);
     ev.push({
       key: `c:${t.id}`,
+      taskId: t.id,
       kind: "created",
       text: `Task #${t.id} created: ${t.title}. ${formatNear(taskBudget(t))} NEAR in escrow`,
       at: nsToDate(t.created_at),
@@ -100,6 +104,8 @@ export function activity(agents: Agent[], tasks: Task[], coordinator: string): A
       if (at > last) last = at;
       ev.push({
         key: `s:${t.id}:${i}`,
+        taskId: t.id,
+        slot: i,
         kind: "submitted",
         role: s.role,
         text: `${byId.get(s.agent_id)?.name ?? s.agent_id} submitted to task #${t.id}`,
@@ -117,6 +123,8 @@ export function activity(agents: Agent[], tasks: Task[], coordinator: string): A
       if (!owner) return;
       ev.push({
         key: `p:${t.id}:${i}`,
+        taskId: t.id,
+        slot: i,
         kind: "paid",
         role: s.role,
         text: `+${formatNear(s.reward)} NEAR paid to ${owner}`,
@@ -126,10 +134,11 @@ export function activity(agents: Agent[], tasks: Task[], coordinator: string): A
       });
     };
     if (t.status === "Settled") {
-      ev.push({ key: `x:${t.id}`, kind: "settled", text: `Task #${t.id} settled`, at: null, sortKey: last + 3n, href: explorer.account(CONTRACT_ID) });
+      ev.push({ key: `x:${t.id}`, taskId: t.id, kind: "settled", text: `Task #${t.id} settled`, at: null, sortKey: last + 3n, href: explorer.account(CONTRACT_ID) });
       t.slots.forEach((_, i) => paid(i, last + 2n));
       ev.push({
         key: `pc:${t.id}`,
+        taskId: t.id,
         kind: "paid",
         text: `+${formatNear(t.coordinator_fee)} NEAR fee paid to ${coordinator}`,
         at: null,
@@ -138,10 +147,10 @@ export function activity(agents: Agent[], tasks: Task[], coordinator: string): A
       });
     } else if (t.status === "Expired") {
       const after = BigInt(t.deadline) > last ? BigInt(t.deadline) : last;
-      ev.push({ key: `x:${t.id}`, kind: "expired", text: `Task #${t.id} expired, unused escrow refunded`, at: null, sortKey: after + 2n, href: explorer.account(t.creator) });
+      ev.push({ key: `x:${t.id}`, taskId: t.id, kind: "expired", text: `Task #${t.id} expired, unused escrow refunded`, at: null, sortKey: after + 2n, href: explorer.account(t.creator) });
       t.slots.forEach((s, i) => s.result_hash && paid(i, after + 1n));
     } else if (t.status === "Cancelled") {
-      ev.push({ key: `x:${t.id}`, kind: "cancelled", text: `Task #${t.id} cancelled, escrow refunded`, at: null, sortKey: last + 1n, href: explorer.account(t.creator) });
+      ev.push({ key: `x:${t.id}`, taskId: t.id, kind: "cancelled", text: `Task #${t.id} cancelled, escrow refunded`, at: null, sortKey: last + 1n, href: explorer.account(t.creator) });
     }
   }
   return ev.sort((a, b) => (b.sortKey > a.sortKey ? 1 : b.sortKey < a.sortKey ? -1 : 0));

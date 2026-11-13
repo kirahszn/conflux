@@ -5,6 +5,7 @@ import { Footer } from "../Footer";
 import { WalletButton } from "../WalletButton";
 import { CoordinatorStatus } from "./CoordinatorStatus";
 import { IconMenu } from "./Icons";
+import { OfflineBanner } from "./OfflineBanner";
 import { Brand, NavList } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
 
@@ -48,6 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
           </div>
+          <OfflineBanner />
         </header>
 
         {open && (

@@ -3,6 +3,7 @@ import { Geist, JetBrains_Mono, Unbounded } from "next/font/google";
 import { NotConfigured } from "@/components/NotConfigured";
 import { network } from "@/config/network";
 import { AppShell } from "@/components/shell/AppShell";
+import { EXTENSION_ERROR_FILTER } from "@/lib/extensionErrors";
 import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
 
@@ -18,6 +19,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+      <head>
+        {/* Must run before any other script: see lib/extensionErrors.ts */}
+        <script dangerouslySetInnerHTML={{ __html: EXTENSION_ERROR_FILTER }} />
+      </head>
       <body className="min-h-dvh">
         <WalletProvider>
           <AppShell>{network.contractId ? children : <NotConfigured />}</AppShell>
