@@ -16,6 +16,7 @@ import { Page, PageHeader } from "../PageHeader";
 import { ReportView } from "../ReportView";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag, StatusPill } from "../Tags";
+import { VerifyBadge, verifyState } from "../VerifyBadge";
 import { PAYMENT_LABEL, payment } from "./ContributionsTable";
 
 const when = (ns: string) => nsToDate(ns).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" });
@@ -138,6 +139,9 @@ export function ContributionDetail({ taskParam, slotParam }: { taskParam: string
                     }
                   />
                 </dl>
+                <div className="mt-3">
+                  <VerifyBadge s={verifyState(coord, view?.slotVerification[slotIndex])} />
+                </div>
               </div>
             </div>
           </section>

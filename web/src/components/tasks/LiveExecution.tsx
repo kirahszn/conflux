@@ -18,6 +18,7 @@ import { useWallet } from "@/lib/wallet";
 import { shortenAccount } from "../Account";
 import { Page, PageHeader } from "../PageHeader";
 import { ReportView } from "../ReportView";
+import { VerifyBadge, verifyState, type VerifyState } from "../VerifyBadge";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag, StatusPill } from "../Tags";
 import { TxButton } from "../TxButton";
@@ -110,12 +111,12 @@ export function LiveExecution({ idParam }: { idParam: string }) {
             <h2 id="lanes" className="text-sm font-semibold">Agents</h2>
             <div className="mt-3 space-y-3">
               {task.slots.map((_, i) => (
-                <Lane key={i} task={task} i={i} agents={agents} view={view} />
+                <Lane key={i} task={task} i={i} agents={agents} view={view} verify={verifyState(coord, view?.slotVerification[i])} />
               ))}
             </div>
           </section>
 
-          <FinalReport task={task} view={view} coordState={coord.state} snapshot={snap} agents={agents} />
+          <FinalReport task={task} view={view} coordState={coord.state} snapshot={snap} agents={agents} verify={verifyState(coord, view?.synthVerification)} />
         </div>
 
         <div className="min-w-0 space-y-4">
@@ -176,7 +177,7 @@ const LANE_DOT: Record<LaneState, string> = {
   unpaid: "bg-bad",
 };
 
-function Lane({ task, i, agents, view }: { task: Task; i: number; agents: Map<string, Agent>; view: CoordView | null }) {
+function Lane({ task, i, agents, view, verify }: { task: Task; i: number; agents: Map<string, Agent>; view: CoordView | null; verify: VerifyState }) {
   const s = task.slots[i]!;
   const a = s.agent_id ? agents.get(s.agent_id) : undefined;
   const state = laneState(task, i, view?.task ?? null);
@@ -242,6 +243,11 @@ function Lane({ task, i, agents, view }: { task: Task; i: number; agents: Map<st
             {s.result_hash && !proof && s.proof_ref && <Row k="proof_ref" v={<span className="font-mono break-all">{s.proof_ref}</span>} />}
           </dl>
 
+          {s.result_hash && (
+            <div className="mt-3">
+              <VerifyBadge s={verify} />
+            </div>
+          )}
           {cs?.result && (
             <details className="mt-3 rounded-lg border border-line bg-bg/50">
               <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm text-fg-2">Read {a?.name ?? "agent"} report ({cs.result.length.toLocaleString()} characters)</summary>
@@ -274,7 +280,7 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 // ---- Final report + disagreements -------------------------------------------------------
-function FinalReport({ task, view, coordState, snapshot, agents }: { task: Task; view: CoordView | null; coordState: string; snapshot: Showcase | null; agents: Map<string, Agent> }) {
+function FinalReport({ task, view, coordState, snapshot, agents, verify }: { task: Task; view: CoordView | null; coordState: string; snapshot: Showcase | null; agents: Map<string, Agent>; verify: VerifyState }) {
   const names = useMemo(() => [...agents.values()].map((a) => a.name), [agents]);
   const disagreements: { list: Disagreement[]; raw: string[]; count: number } = useMemo(() => {
     if (view?.report) {
@@ -308,6 +314,11 @@ function FinalReport({ task, view, coordState, snapshot, agents }: { task: Task;
       </div>
 
       <div className="p-4">
+        {task.final_report_hash && (
+          <div className="mb-3">
+            <VerifyBadge s={verify} />
+          </div>
+        )}
         {!task.final_report_hash && (
           <p className="text-sm text-muted">
             {task.status === "Submitted"

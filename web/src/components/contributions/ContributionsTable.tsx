@@ -9,6 +9,8 @@ import { shortenAccount } from "../Account";
 import { StatGrid } from "../StatGrid";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag } from "../Tags";
+import { VerifyBadge } from "../VerifyBadge";
+import { useSlotVerifications } from "@/lib/useSlotVerifications";
 
 export interface Contribution {
   task: Task;
@@ -47,6 +49,7 @@ export function ContributionsTable() {
   const agents = useMemo(() => new Map<string, Agent>(data.state === "ready" ? data.agents.map((a) => [a.agent_id, a]) : []), [data]);
   const contributors = useMemo(() => [...new Set(all.map((c) => c.agentId))], [all]);
   const rows = agentFilter === "all" ? all : all.filter((c) => c.agentId === agentFilter);
+  const verification = useSlotVerifications(data.state === "ready" ? data.tasks : []);
 
   if (data.state === "error") return <ErrorState message={data.message} onRetry={retry} />;
   if (data.state === "loading") {
@@ -113,6 +116,9 @@ export function ContributionsTable() {
                       {proof && <span className="font-mono">{proof.kind}</span>}
                       <PayCell c={c} />
                     </div>
+                    <div className="mt-2">
+                      <VerifyBadge s={verification(c.task.id, c.index)} compact />
+                    </div>
                   </Link>
                 </li>
               );
@@ -150,6 +156,9 @@ export function ContributionsTable() {
                         </Link>
                       </td>
                       <td className="px-3 py-2 font-mono text-xs text-fg-2">
+                        <div className="mb-1 font-sans">
+                          <VerifyBadge s={verification(c.task.id, c.index)} compact />
+                        </div>
                         {proof ? (
                           <>
                             {proof.kind}

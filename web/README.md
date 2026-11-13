@@ -21,6 +21,16 @@ npm run typecheck
 - **Contract reads:** plain JSON-RPC `call_function` views from the browser (`src/lib/near.ts`).
   No `near-api-js` bundle. `get_agents` / `get_tasks` are paged (50 per page). One shared request
   per page load (`src/lib/useChainData.ts`).
+- **Signature verification** (`src/lib/verify.ts`, in the browser, no server trusted): for every
+  contribution and the final synthesis, recover the secp256k1 signer of NEAR AI's `signed_text`
+  (EIP-191) and compare it with `signing_address`; check sha256 of the exact request and response
+  bytes against the hashes inside `signed_text`; check the report is the text in the signed response,
+  its sha256 equals the on-chain `result_hash` (or `final_report_hash`), and `proof_ref` names that
+  signature. "Signature verified" only when every check passes; red names the first failure; grey
+  when proofs are unavailable or in the older single-step format. Uses `@noble/curves` and
+  `@noble/hashes` 2.2.0, the versions `near-api-js` ships. TEE attestation of the signing key is
+  NEAR AI's (https://docs.near.ai/cloud/verification), linked, not checked here.
+  Test against real proofs and tampered copies: `node scripts/verify-proofs.mts http://localhost:8787 2,3,5`.
 - **"NEAR paid out"** follows the contract's payout rules: a Settled task pays its whole escrow
   (rewards plus coordinator fee). An Expired task pays only submitted slots (refunds not counted).
 - **Theme:** dark NEAR look. Deep green to teal gradient, soft NEAR green (`#00EC97`) light beams in

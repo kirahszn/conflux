@@ -182,6 +182,16 @@ export function createApi() {
     res.type("text/markdown; charset=utf-8").send(fr.report);
   });
 
+  // The synthesis text and its full NEAR AI proof (signature, signed text, exact request and
+  // response bytes), so a browser can verify the final report without trusting this server.
+  app.get("/tasks/:id/synthesis", async (req, res) => {
+    const task = await loadTask(req, res);
+    if (!task) return;
+    const fr = store.finalReport(task.id);
+    if (!fr?.synthesis || !fr.proof) return res.status(404).json({ error: `no signed synthesis for task ${task.id} yet` });
+    res.json({ task_id: task.id, synthesis: fr.synthesis, proof: fr.proof });
+  });
+
   // Stage 4.2b: the plan linked to a task (public parts only: roles, reasons, rewards, plan proof).
   app.get("/tasks/:id/plan", async (req, res) => {
     const task = await loadTask(req, res);
