@@ -34,3 +34,4 @@ Plan: 1 routes, 2 landing, 3 network graph, 4 restraint pass, 5 journey on Overv
 6 contributions flow, 7 mainnet labels + mainnet build scan, 8 final tests (testnet: create, approve,
 register, badges). If behind: protect 1-3 and 7, shorten 4-6. Layout check: scratchpad shot/verify2.mjs.
 - Stages 1-2 DONE (88bce17): landing at /, Overview at /overview, /about -> /. Next: stage 3 network graph.
+- Stage 3 DONE (728fd11): SVG network graph (lib/graph.ts, components/graph/*), 19/19 and 8/8 edges match chain. Next: stage 4 restraint pass.
