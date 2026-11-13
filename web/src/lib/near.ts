@@ -92,6 +92,10 @@ export const getAllAgents = (signal?: AbortSignal) => all<Agent>("get_agents", s
 export const getAllTasks = (signal?: AbortSignal) => all<Task>("get_tasks", signal);
 export const getCoordinator = (signal?: AbortSignal) => view<string>("get_coordinator", {}, signal);
 export const getTask = (id: number, signal?: AbortSignal) => view<Task | null>("get_task", { task_id: id }, signal);
+export const getAgent = (agentId: string, signal?: AbortSignal) => view<Agent | null>("get_agent", { agent_id: agentId }, signal);
+
+/** NEAR account id rules (2 to 64 chars, lowercase labels separated by dots, "-" or "_" inside labels). */
+export const isValidAccountId = (id: string) => id.length >= 2 && id.length <= 64 && /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/.test(id);
 
 /** Account balance (yocto) or null if the account does not exist. */
 export async function viewAccount(accountId: string): Promise<{ amount: string; locked: string; storage_usage: number } | null> {
