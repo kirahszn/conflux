@@ -60,6 +60,8 @@ export function createApi() {
     }
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // Lets Chrome call this laptop coordinator from the public HTTPS site (Private Network Access preflight).
+    res.setHeader("Access-Control-Allow-Private-Network", "true");
     if (req.method === "OPTIONS") return void res.sendStatus(204);
     next();
   });
