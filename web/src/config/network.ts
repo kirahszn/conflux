@@ -1,5 +1,5 @@
 // The ONLY place network-specific values live. Switching testnet → mainnet is config only:
-//   NEXT_PUBLIC_NETWORK=mainnet   (and NEXT_PUBLIC_CONTRACT_ID / NEXT_PUBLIC_COORDINATOR_URL once they exist)
+//   Default is mainnet. NEXT_PUBLIC_NETWORK=testnet selects testnet (overrides: NEXT_PUBLIC_CONTRACT_ID, NEXT_PUBLIC_COORDINATOR_URL)
 // Every other file reads `network` from here. Values are public (sent to the browser).
 // No runtime imports, so Node scripts (scripts/*.mts) can import this file too.
 
@@ -60,7 +60,7 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
 };
 
 function select(): NetworkConfig {
-  const id = (process.env.NEXT_PUBLIC_NETWORK ?? "testnet").trim();
+  const id = (process.env.NEXT_PUBLIC_NETWORK ?? "mainnet").trim();
   if (id !== "testnet" && id !== "mainnet") {
     throw new Error(`NEXT_PUBLIC_NETWORK must be "testnet" or "mainnet", got "${id}"`);
   }
