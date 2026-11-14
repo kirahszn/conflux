@@ -10,6 +10,7 @@ import { StatGrid } from "../StatGrid";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag } from "../Tags";
 import { VerifyBadge } from "../VerifyBadge";
+import { ContributionFlow } from "./ContributionFlow";
 import { useSlotVerifications } from "@/lib/useSlotVerifications";
 
 export interface Contribution {
@@ -75,6 +76,8 @@ export function ContributionsTable() {
           { k: "With proof", v: String(proven), hint: "signed inference reference on chain" },
         ]}
       />
+
+      {data.coordinator !== undefined && <ContributionFlow tasks={data.tasks} agents={data.agents} coordinator={data.coordinator} />}
 
       {all.length === 0 ? (
         <EmptyState title="No contributions yet.">
