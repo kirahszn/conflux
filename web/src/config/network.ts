@@ -47,12 +47,12 @@ const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     networkId: "mainnet",
     label: "Mainnet",
-    contractId: null, // set when the mainnet contract is deployed (or via NEXT_PUBLIC_CONTRACT_ID)
+    contractId: "conflux.bestnode934.near",
     rpcUrl: "https://rpc.mainnet.fastnear.com",
     archivalRpcUrl: "https://archival-rpc.mainnet.fastnear.com",
     explorerUrl: "https://nearblocks.io",
     explorerApiUrl: "https://api.nearblocks.io",
-    coordinatorUrl: null, // set when the mainnet coordinator is deployed (or via NEXT_PUBLIC_COORDINATOR_URL)
+    coordinatorUrl: "http://localhost:8788", // mainnet coordinator port (NEAR_NETWORK=mainnet); override with NEXT_PUBLIC_COORDINATOR_URL
     accountSuffix: ".near",
     showcase: null,
     earlierRuns: { label: "Earlier testnet runs", url: "https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet" },
