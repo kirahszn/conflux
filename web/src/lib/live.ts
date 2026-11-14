@@ -1,5 +1,6 @@
 // Live Execution: pure derivations from real data only (contract task + optional coordinator view).
 // Nothing here guesses activity: a lane is "assigned" until the contract shows a result_hash.
+import { JOURNEY } from "./journey";
 import type { Agent, Task } from "./near";
 
 /** On-chain proof_ref: "nearai:<kind>:<model>:<chat_id>:<signing_address>" (model may contain "/"). */
@@ -58,6 +59,8 @@ export interface Stage {
   detail: string;
 }
 
+/** The 8 journey steps (lib/journey.ts) for one task, each with its state from on-chain data
+ *  (plus the coordinator's stored reports when it is reachable). */
 export function pipeline(t: Task, coord: CoordTask | null, coordOnline: boolean, now: number): Stage[] {
   const n = t.slots.length;
   const assigned = t.slots.filter((s) => s.agent_id).length;
@@ -65,61 +68,67 @@ export function pipeline(t: Task, coord: CoordTask | null, coordOnline: boolean,
   const stored = coord ? coord.slots.filter((s, i) => t.slots[i]?.result_hash && s.result).length : null;
   const ended = t.status === "Cancelled" || t.status === "Expired";
   const pastDeadline = now >= nsToMs(t.deadline);
-  const stopped = (s: string): Stage["state"] => (ended ? "stopped" : (s as StageState));
+  const stopped = (s: StageState): StageState => (ended ? "stopped" : s);
+  const L = Object.fromEntries(JOURNEY.map((j) => [j.key, j.label])) as Record<string, string>;
+  const working = assigned - submitted;
 
-  const stages: Stage[] = [
-    { key: "task", label: "Task", state: "done", detail: `Funded with ${n} role${n === 1 ? "" : "s"}` },
+  return [
+    { key: "created", label: L.created!, state: "done", detail: `${n} role${n === 1 ? "" : "s"} planned` },
     {
-      key: "assign",
-      label: "Assignment",
+      key: "funded",
+      label: L.funded!,
+      state: "done",
+      detail: t.status === "Settled" ? "Escrow paid out" : ended ? "Escrow returned or paid" : "Budget held by the contract",
+    },
+    {
+      key: "assigned",
+      label: L.assigned!,
       state: assigned === n ? "done" : stopped(t.status === "Funded" || t.status === "InProgress" ? "current" : "waiting"),
-      detail: `${assigned}/${n} slots assigned`,
+      detail: `${assigned}/${n} slots assigned on chain`,
     },
     {
-      key: "exec",
-      label: "Agent Execution",
+      key: "executing",
+      label: L.executing!,
       state: submitted === n ? "done" : assigned === 0 ? stopped("waiting") : pastDeadline ? "stopped" : stopped("current"),
-      detail: submitted === n ? "All agents submitted" : pastDeadline && submitted < n ? `Deadline passed, ${submitted}/${n} submitted` : `${submitted}/${n} signed submissions on chain`,
+      detail: submitted === n ? "Every agent finished" : pastDeadline && submitted < n ? `Deadline passed, ${submitted}/${n} finished` : working > 0 ? `${working} agent${working === 1 ? "" : "s"} working` : "Waiting for agents",
     },
     {
-      key: "contrib",
-      label: "Contributions",
+      key: "submitted",
+      label: L.submitted!,
       state:
+        submitted === n && (stored === null || stored === n)
+          ? stored === null ? "unknown" : "done"
+          : submitted > 0 ? stopped("current") : stopped("waiting"),
+      detail:
         stored === null
-          ? submitted > 0 ? "unknown" : stopped("waiting")
-          : submitted > 0 && stored === submitted && submitted === n
-            ? "done"
-            : submitted > 0
-              ? stopped("current")
-              : stopped("waiting"),
-      detail: stored === null ? (coordOnline ? "Reading coordinator…" : "Coordinator offline") : `${stored}/${n} reports stored and checked by the coordinator`,
+          ? `${submitted}/${n} signed on chain${submitted && !coordOnline ? ", reports offline" : ""}`
+          : `${submitted}/${n} signed on chain, ${stored} report${stored === 1 ? "" : "s"} stored`,
     },
     {
-      key: "aggregate",
-      label: "Aggregated Result",
+      key: "aggregated",
+      label: L.aggregated!,
       state: t.final_report_hash ? "done" : t.status === "Submitted" ? "current" : stopped("waiting"),
       detail: t.final_report_hash
         ? "Final report hash on chain"
         : t.status === "Submitted"
           ? coord?.final_report?.last_error
             ? `Synthesis retrying: ${coord.final_report.last_error}`
-            : "Coordinator is writing the signed synthesis"
+            : "Coordinator writing the signed synthesis"
           : "After all submissions",
     },
     {
-      key: "approve",
-      label: "Approval",
+      key: "approved",
+      label: L.approved!,
       state: t.status === "Settled" ? "done" : t.status === "Submitted" && t.final_report_hash ? "current" : stopped("waiting"),
       detail: t.status === "Settled" ? "Approved or released" : t.status === "Submitted" && t.final_report_hash ? "Waiting for the creator" : "After the final report",
     },
     {
-      key: "settle",
-      label: "NEAR Settlement",
-      state: t.status === "Settled" ? "done" : t.status === "Expired" || t.status === "Cancelled" ? "stopped" : "waiting",
-      detail: t.status === "Settled" ? "Escrow paid out" : t.status === "Expired" ? "Expired: submitted slots paid, rest refunded" : t.status === "Cancelled" ? "Cancelled: escrow refunded" : "Pays each owner and the coordinator",
+      key: "settled",
+      label: L.settled!,
+      state: t.status === "Settled" ? "done" : ended ? "stopped" : "waiting",
+      detail: t.status === "Settled" ? "Each owner and the coordinator paid" : t.status === "Expired" ? "Expired: submitted slots paid, rest refunded" : t.status === "Cancelled" ? "Cancelled: escrow refunded" : "Pays each owner and the coordinator",
     },
   ];
-  return stages;
 }
 
 // ---- Agent lanes ------------------------------------------------------------------

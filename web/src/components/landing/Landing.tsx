@@ -10,7 +10,7 @@ import { formatNear, payouts, type Task } from "@/lib/near";
 import { useChainData } from "@/lib/useChainData";
 import { useCoordinatorHealth } from "@/lib/useCoordinatorHealth";
 import { Skeleton } from "../States";
-import { JOURNEY, ACTOR_STYLE } from "./journey";
+import { JOURNEY, ACTOR_STYLE } from "@/lib/journey";
 import { NetworkPreview } from "./NetworkPreview";
 
 /** Newest settled task on this network, or null. */

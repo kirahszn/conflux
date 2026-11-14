@@ -20,6 +20,8 @@ import { Page, PageHeader } from "../PageHeader";
 import { ReportView } from "../ReportView";
 import { VerifyBadge, verifyState, type VerifyState } from "../VerifyBadge";
 import { TaskGraph } from "../graph/LiveGraphs";
+import { ACTOR_STYLE, JOURNEY } from "@/lib/journey";
+import { TaskTimeline } from "./TaskTimeline";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag, StatusPill } from "../Tags";
 import { TxButton } from "../TxButton";
@@ -128,6 +130,7 @@ export function LiveExecution({ idParam }: { idParam: string }) {
           </section>
 
           <FinalReport task={task} view={view} coordState={coord.state} snapshot={snap} agents={agents} verify={verifyState(coord, view?.synthVerification)} />
+          <TaskTimeline task={task} agents={agents} finalTx={view?.task.final_report?.tx ?? null} />
         </div>
 
         <div className="min-w-0 space-y-4">
@@ -154,18 +157,19 @@ const STAGE_STYLE: Record<Stage["state"], { dot: string; text: string; label: st
 
 function Pipeline({ stages, active }: { stages: Stage[]; active: boolean }) {
   return (
-    <ol className="mt-6 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 sm:[&>li:last-child]:col-span-2 lg:grid-cols-4 lg:[&>li:last-child]:col-span-2 xl:grid-cols-7 xl:[&>li:last-child]:col-span-1" aria-label="Pipeline">
+    <ol className="mt-6 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4" aria-label="Task journey">
       {stages.map((s, i) => {
         const st = STAGE_STYLE[s.state];
         return (
           <li key={s.key} className="bg-surface p-3.5" aria-current={s.state === "current" ? "step" : undefined}>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className={`relative grid h-4 w-4 place-items-center rounded-full border-2 ${st.dot}`} aria-hidden>
                 {s.state === "current" && active && <span className="live-dot absolute inset-0 rounded-full" />}
                 {s.state === "done" && <span className="text-[9px] font-bold leading-none text-ink">✓</span>}
               </span>
               <span className="font-mono text-[10px] text-faint">{i + 1}</span>
-              <span className={`text-sm font-semibold ${st.text}`}>{s.label}</span>
+              <span className={`min-w-0 text-sm font-semibold ${st.text}`}>{s.label}</span>
+              {JOURNEY[i] && <span className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] ${ACTOR_STYLE[JOURNEY[i]!.actor]}`}>{JOURNEY[i]!.actor}</span>}
             </div>
             <p className="mt-1.5 text-xs leading-snug text-muted">
               <span className="sr-only">{st.label}: </span>

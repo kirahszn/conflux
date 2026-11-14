@@ -7,6 +7,7 @@ import { explorer, network } from "@/config/network";
 import { activity, timeAgo, type ActivityEvent } from "@/lib/feed";
 import { closingTxs } from "@/lib/history";
 import { formatNear, nsToDate, payouts, type Task } from "@/lib/near";
+import { ACTOR_STYLE, JOURNEY, journeyStep } from "@/lib/journey";
 import { roleVars } from "@/lib/roles";
 import { useChainData } from "@/lib/useChainData";
 import { useCoordinatorHealth } from "@/lib/useCoordinatorHealth";
@@ -87,6 +88,8 @@ export function Overview() {
         ]}
       />
 
+      <JourneyStrip tasks={data.tasks} />
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-6">
           <section>
@@ -140,6 +143,44 @@ export function Overview() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Where every task is on the 8-step journey right now (from on-chain state). */
+function JourneyStrip({ tasks }: { tasks: Task[] }) {
+  const at = JOURNEY.map(() => [] as Task[]);
+  let left = 0;
+  for (const t of tasks) {
+    const i = journeyStep(t);
+    if (i === null) left++;
+    else at[i]!.push(t);
+  }
+  return (
+    <section aria-labelledby="journey">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="journey" className="text-sm font-semibold">Task journey</h2>
+        <span className="text-xs text-faint">{left ? `${left} expired or cancelled, outside the journey` : "Counts are tasks at each step now"}</span>
+      </div>
+      <ol className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4 xl:grid-cols-8">
+        {JOURNEY.map((j, i) => {
+          const here = at[i]!;
+          const done = i === JOURNEY.length - 1;
+          return (
+            <li key={j.key} className="min-w-0 bg-surface">
+              <Link href={here.length === 1 ? `/tasks/${here[0]!.id}` : "/tasks"} className="block min-h-11 px-3 py-3 hover:bg-surface-2">
+                <span className="flex items-center justify-between gap-1">
+                  <span className="font-mono text-[10px] text-faint">{String(i + 1).padStart(2, "0")}</span>
+                  <span className={`rounded px-1 py-px text-[9px] font-semibold uppercase tracking-[0.08em] ${ACTOR_STYLE[j.actor]}`}>{j.actor}</span>
+                </span>
+                <span className="mt-1.5 block truncate text-xs font-medium text-fg-2" title={j.label}>{j.label}</span>
+                <span className={`mt-1 block font-mono text-lg ${here.length ? (done ? "text-green" : "text-fg") : "text-faint"}`}>{here.length}</span>
+                <span className="block text-[10px] text-faint">{done ? "settled" : here.length === 1 ? "task here" : "tasks here"}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 

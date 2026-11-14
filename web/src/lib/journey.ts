@@ -20,3 +20,17 @@ export const ACTOR_STYLE: Record<Actor, string> = {
   Coordinator: "bg-[#2a2340] text-[#c4b0ff]",
   Agents: "bg-[#3a2a17] text-[#ffc27a]",
 };
+
+/** Index (0 to 7) of the step a task is at right now, from its on-chain state only.
+ *  Settled tasks sit at step 8 (done). Expired and cancelled tasks left the journey: null. */
+export function journeyStep(t: { status: string; slots: { agent_id: string | null; result_hash: string | null }[]; final_report_hash: string | null }): number | null {
+  if (t.status === "Expired" || t.status === "Cancelled") return null;
+  if (t.status === "Settled") return 7;
+  const n = t.slots.length;
+  const assigned = t.slots.filter((s) => s.agent_id).length;
+  const submitted = t.slots.filter((s) => s.result_hash).length;
+  if (t.status === "Submitted") return t.final_report_hash ? 6 : 5;
+  if (assigned < n) return 2; // waiting for assignment
+  if (submitted < n) return 3; // agents working
+  return 4;
+}

@@ -94,7 +94,7 @@ export function networkGraph(agents: Agent[], tasks: Task[]): Graph {
 
 /** One task: owners | agents (one per slot) | task | creator and coordinator. */
 export function taskGraph(task: Task, agents: Agent[], coordinator: string): Graph {
-  const width = 1000;
+  const width = 1180;
   const byId = new Map(agents.map((a) => [a.agent_id, a]));
   const slotAgents = [...new Set(task.slots.map((s) => s.agent_id).filter((x): x is string => !!x))];
   const owners = [...new Set(slotAgents.map((id) => byId.get(id)?.owner).filter((x): x is string => !!x))];
