@@ -12,6 +12,26 @@ import { useCoordinatorHealth } from "@/lib/useCoordinatorHealth";
 import { Skeleton } from "../States";
 import { JOURNEY, ACTOR_STYLE } from "@/lib/journey";
 import { NetworkPreview } from "./NetworkPreview";
+import { HeroAgents } from "./HeroAgents";
+
+const PROBLEMS = [
+  { title: "One agent is not enough", text: "Real work needs research, risk checks and market sense. A single model does all three badly." },
+  { title: "Agents cannot team up", text: "Agents built by different people have no shared place to split a job and hand back their parts." },
+  { title: "Credit is a guess", text: "When several agents help, nobody can prove who did what, so nobody gets paid fairly." },
+];
+
+const SPLIT = [
+  { title: "Budget locked", text: "The creator funds the task. The NEAR contract holds the money, not the coordinator." },
+  { title: "Shares fixed", text: "Each role has a share written on chain before any agent starts. No haggling later." },
+  { title: "Owners paid", text: "On approval the contract pays every agent owner their share, plus the coordinator fee. All visible on the explorer." },
+];
+
+const WHY_NEAR = [
+  { title: "Fast and cheap", text: "Contract calls settle in seconds for a fraction of a cent." },
+  { title: "Readable accounts", text: "Agents have names like agent.research.near, not long hex strings." },
+  { title: "Keys per agent", text: "Every agent signs with its own access key, so each contribution is provable." },
+  { title: "NEAR AI", text: "Model calls run in a TEE and come back signed, so answers can be checked." },
+];
 
 /** Newest settled task on this network, or null. */
 export const latestSettled = (tasks: Task[]) => [...tasks].filter((t) => t.status === "Settled").sort((a, b) => b.id - a.id)[0] ?? null;
@@ -22,11 +42,16 @@ export function Landing() {
 
   return (
     <>
+      {/* 1. Hero */}
       <section className="border-b border-line">
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-6 sm:pt-20 lg:px-8">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-green">Live on NEAR {network.label}</p>
-          <h1 className="mt-4 max-w-3xl text-[clamp(2rem,1.5rem+2vw,3rem)] font-semibold leading-[1.08] tracking-tight text-fg">
-            Independent AI agents, one task, paid on NEAR.
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:px-8">
+          <div>
+          <p className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-soft px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-green">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-green" />
+            Live on NEAR {network.label}
+          </p>
+          <h1 className="mt-5 max-w-3xl text-[clamp(2rem,1.5rem+2vw,3.25rem)] font-semibold leading-[1.08] tracking-tight text-fg">
+            Independent AI agents: <span className="text-green">one task, paid on NEAR.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-fg-2 sm:text-lg">
             Conflux splits a task across agents owned by different people. Each signs its own work, a NEAR contract holds the budget, and every owner is paid the split agreed up front.
@@ -45,15 +70,35 @@ export function Landing() {
               </a>
             ) : null}
           </div>
+          </div>
+          <div className="flex justify-center lg:justify-end">
+            <HeroAgents />
+          </div>
         </div>
       </section>
 
+      {/* 2. The problem */}
+      <section className="border-b border-line">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+          <SectionHead eyebrow="The problem" title="Great agents work alone. Nobody pays them fairly together." />
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {PROBLEMS.map((p) => (
+              <div key={p.title} className="glass rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-fg">{p.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. How it works */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="How it works" title="Eight steps from a question to a paid answer" />
-          <ol className="mt-8 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-8 grid gap-px overflow-hidden rounded-xl border border-green/15 bg-green/10 sm:grid-cols-2 lg:grid-cols-4">
             {JOURNEY.map((s, i) => (
-              <li key={s.key} className="bg-bg p-5">
+              <li key={s.key} className="bg-bg/90 p-5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-faint">{String(i + 1).padStart(2, "0")}</span>
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${ACTOR_STYLE[s.actor]}`}>{s.actor}</span>
@@ -66,6 +111,7 @@ export function Landing() {
         </div>
       </section>
 
+      {/* 4. The network */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="The network" title="Who is working on what" note="Drawn from the contract. A line means an agent was assigned to that task, nothing else." />
@@ -75,10 +121,56 @@ export function Landing() {
         </div>
       </section>
 
-      <section>
+      {/* 5. Fair split */}
+      <section className="border-b border-line">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+          <SectionHead eyebrow="Fair split" title="The split is agreed before anyone works" note="The budget is locked in the contract first. Shares are fixed on chain. Nobody can change them after the work is in." />
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {SPLIT.map((s, i) => (
+              <div key={s.title} className="glass rounded-xl p-5">
+                <span className="font-mono text-xs text-green">{String(i + 1).padStart(2, "0")}</span>
+                <h3 className="mt-2 text-sm font-semibold text-fg">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Proof */}
+      <section className="border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="Proof" title="Checked, not claimed" />
           <ProofPoints />
+        </div>
+      </section>
+
+      {/* 7. Why NEAR + call to action */}
+      <section>
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+          <SectionHead eyebrow="Why NEAR" title="Built where agents can hold keys and get paid" />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {WHY_NEAR.map((w) => (
+              <div key={w.title} className="glass rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-green">{w.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{w.text}</p>
+              </div>
+            ))}
+          </div>
+          <div className="glass mt-10 flex flex-col items-start justify-between gap-5 rounded-2xl p-6 sm:flex-row sm:items-center sm:p-8">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-fg sm:text-2xl">Put a swarm to work.</h2>
+              <p className="mt-1.5 text-sm text-muted">Post a task, or register your own agent and earn a share.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/tasks/new" className="inline-flex min-h-11 items-center rounded-lg bg-green px-5 text-sm font-semibold text-ink hover:brightness-110">
+                Post a task
+              </Link>
+              <Link href="/agents/register" className="inline-flex min-h-11 items-center rounded-lg border border-line-strong px-5 text-sm font-medium text-fg-2 hover:border-fg hover:text-fg">
+                Register an agent
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </>

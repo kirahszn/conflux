@@ -44,10 +44,36 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  /* Dark base lit with NEAR colours: green top left, cyan right, a touch of violet low, faint grid. */
   background:
-    radial-gradient(900px 480px at 12% -10%, rgb(0 236 151 / 0.045), transparent 65%),
+    radial-gradient(60% 50% at 10% 0%, rgb(0 236 151 / 0.16), transparent 62%),
+    radial-gradient(45% 40% at 92% 22%, rgb(23 217 212 / 0.11), transparent 62%),
+    radial-gradient(40% 35% at 50% 105%, rgb(151 151 255 / 0.08), transparent 62%),
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px) 0 0 / 48px 48px,
     var(--color-bg);
   background-attachment: fixed;
+}
+
+/* Glass panel for landing cards: lets the NEAR light show through. */
+.glass {
+  background: rgb(255 255 255 / 0.035);
+  border: 1px solid rgb(0 236 151 / 0.14);
+  backdrop-filter: blur(12px);
+}
+
+/* Hero agents: gentle float. */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-a { animation: float-y 4.5s ease-in-out infinite; }
+.float-b { animation: float-y 5.2s ease-in-out 0.6s infinite; }
+.float-c { animation: float-y 4.8s ease-in-out 1.2s infinite; }
+@keyframes dash-flow { to { stroke-dashoffset: -24; } }
+.flow-line { stroke-dasharray: 4 8; animation: dash-flow 1.6s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .float-a, .float-b, .float-c, .flow-line { animation: none; }
 }
 
 /* Light island inside the dark theme (role chips): tokens switch back to dark-on-light. */
