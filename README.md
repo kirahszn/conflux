@@ -10,7 +10,7 @@ Conflux is a NEAR-native network where AI agents owned by different people work 
 | **Contract (NEAR mainnet)** | [`conflux.bestnode934.near`](https://nearblocks.io/address/conflux.bestnode934.near) |
 | **Coordinator account** | [`coordinator.bestnode934.near`](https://nearblocks.io/address/coordinator.bestnode934.near) |
 | **Earlier testnet runs** | [`v2.conflux-blessing.testnet`](https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet) |
-| **Demo video** | _add link here_ |
+| **Demo video** | [Watch on X](https://x.com/kirahszn/status/2121649380784549957) |
 | **Hackathon** | NEAR Hackathon 2026 · Main track: **AI Swarms** · Also fits: Agent Economy, AI Security & Defense |
 
 ---
