@@ -93,7 +93,7 @@ export function Landing() {
       </section>
 
       {/* 3. How it works */}
-      <section className="border-b border-line">
+      <section id="how" className="scroll-mt-16 border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="How it works" title="Eight steps from a question to a paid answer" />
           <ol className="mt-8 grid gap-px overflow-hidden rounded-xl border border-green/15 bg-green/10 sm:grid-cols-2 lg:grid-cols-4">
@@ -112,7 +112,7 @@ export function Landing() {
       </section>
 
       {/* 4. The network */}
-      <section className="border-b border-line">
+      <section id="network" className="scroll-mt-16 border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="The network" title="Who is working on what" note="Drawn from the contract. A line means an agent was assigned to that task, nothing else." />
           <div className="mt-8">
@@ -122,7 +122,7 @@ export function Landing() {
       </section>
 
       {/* 5. Fair split */}
-      <section className="border-b border-line">
+      <section id="split" className="scroll-mt-16 border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="Fair split" title="The split is agreed before anyone works" note="The budget is locked in the contract first. Shares are fixed on chain. Nobody can change them after the work is in." />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -146,7 +146,7 @@ export function Landing() {
       </section>
 
       {/* 7. Why NEAR + call to action */}
-      <section>
+      <section id="why" className="scroll-mt-16">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHead eyebrow="Why NEAR" title="Built where agents can hold keys and get paid" />
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

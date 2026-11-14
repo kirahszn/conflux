@@ -38,6 +38,7 @@ html {
   background: var(--color-bg);
   color: var(--color-fg);
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {

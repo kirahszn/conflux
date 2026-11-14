@@ -10,6 +10,13 @@ import { OfflineBanner } from "./OfflineBanner";
 import { Brand, NavList } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
 
+const LANDING_NAV = [
+  { href: "#how", label: "How it works" },
+  { href: "#network", label: "Network" },
+  { href: "#split", label: "Fair split" },
+  { href: "#why", label: "Why NEAR" },
+];
+
 /** Dashboard layout: left sidebar on desktop, top bar with a drawer menu below 1024px. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -29,6 +36,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-40 border-b border-line bg-bg/55 backdrop-blur-md">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <Brand />
+            <nav aria-label="Page sections" className="hidden items-center gap-1 md:flex">
+              {LANDING_NAV.map((n) => (
+                <a key={n.href} href={n.href} className="rounded-md px-3 py-2 text-sm text-fg-2 transition-colors hover:bg-white/5 hover:text-green">
+                  {n.label}
+                </a>
+              ))}
+              <Link href="/overview" className="rounded-md px-3 py-2 text-sm text-fg-2 transition-colors hover:bg-white/5 hover:text-green">
+                Overview
+              </Link>
+            </nav>
             <Link href="/overview" className="inline-flex min-h-11 items-center rounded-lg border border-line-strong px-4 text-sm font-medium text-fg hover:border-green hover:text-green">
               Open app
             </Link>
