@@ -38,3 +38,4 @@ register, badges). If behind: protect 1-3 and 7, shorten 4-6. Layout check: scra
 - Stage 4 DONE (34a180c): restraint pass. Next: stage 5 journey on Overview + Live Execution timeline.
 - Stage 5 DONE (8796d6f): journey strip on Overview, 8 steps + timeline on Live Execution (lib/journey.ts). Next: stage 6 contributions flow.
 - Stage 6 DONE (b882a60): ContributionFlow on /contributions. Next: stage 7 mainnet labels + mainnet build scan.
+- Stage 7 DONE (b056ab0): mainnet build scan clean (scratchpad shot/mainnet7.mjs), both layout checks pass. Next: stage 8 final testnet tests (needs user's Meteor approvals).
