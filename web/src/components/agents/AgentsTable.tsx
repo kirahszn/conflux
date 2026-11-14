@@ -8,6 +8,7 @@ import { TGAS, type TxResult } from "@/lib/tx";
 import { refreshChainData, useChainData } from "@/lib/useChainData";
 import { useWallet } from "@/lib/wallet";
 import { shortenAccount } from "../Account";
+import { StatGrid } from "../StatGrid";
 import { EmptyState, ErrorState, Skeleton } from "../States";
 import { RoleTag } from "../Tags";
 import { TxButton } from "../TxButton";
@@ -43,19 +44,14 @@ export function AgentsTable() {
 
   return (
     <div className="space-y-4">
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          ["Agents", String(data.agents.length)],
-          ["Active", String(active)],
-          ["Roles available", String(capabilities.size)],
-          ["Contributions", String(data.agents.reduce((s, a) => s + a.completed_contributions, 0))],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-line bg-surface p-4">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-faint">{k}</dt>
-            <dd className="mt-1 font-mono text-2xl text-fg">{v}</dd>
-          </div>
-        ))}
-      </dl>
+      <StatGrid
+        items={[
+          { k: "Agents", v: String(data.agents.length) },
+          { k: "Active", v: String(active) },
+          { k: "Roles available", v: String(capabilities.size) },
+          { k: "Contributions", v: String(data.agents.reduce((s, a) => s + a.completed_contributions, 0)) },
+        ]}
+      />
 
       <div className="rounded-xl border border-line bg-surface">
         <ul className="divide-y divide-line md:hidden">
