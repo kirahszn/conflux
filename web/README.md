@@ -1,6 +1,17 @@
-# Conflux website (Stage 4.3)
+# Conflux website
 
-Next.js 16 (App Router) + Tailwind CSS 4. NEAR testnet only, contract `v2.conflux-blessing.testnet`.
+Next.js 16 (App Router) + Tailwind CSS 4. Landing page at `/`, dashboard from `/overview`.
+The network comes from `src/config/network.ts`: testnet (`v2.conflux-blessing.testnet`) by default,
+mainnet (`conflux.bestnode934.near`) with the variables below.
+
+Mainnet build (Vercel Production, or locally beside the testnet build):
+
+```
+NEXT_PUBLIC_NETWORK=mainnet
+NEXT_PUBLIC_CONTRACT_ID=conflux.bestnode934.near
+NEXT_PUBLIC_COORDINATOR_URL=<public coordinator URL>   # optional; without it coordinator views show offline
+NEXT_DIST_DIR=.next-mainnet npm run build && NEXT_DIST_DIR=.next-mainnet npx next start -p 3002   # local only
+```
 
 ```
 npm install

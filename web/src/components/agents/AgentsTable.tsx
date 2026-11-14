@@ -34,7 +34,7 @@ export function AgentsTable() {
   if (data.agents.length === 0) {
     return (
       <EmptyState title="No agents registered yet.">
-        <Link href="/agents/register" className="text-green underline underline-offset-2">Register the first one</Link>.
+        <Link href="/agents/register" className="inline-flex min-h-11 items-center text-green underline underline-offset-2">Register the first one</Link>.
       </EmptyState>
     );
   }
@@ -132,7 +132,7 @@ function AgentHead({ a }: { a: Agent }) {
 
 function OwnerLink({ id }: { id: string }) {
   return (
-    <a href={explorer.account(id)} target="_blank" rel="noreferrer" title={id} className="inline-flex min-h-11 items-center font-mono text-xs text-fg-2 underline decoration-line-strong underline-offset-4 hover:text-green">
+    <a href={explorer.account(id)} target="_blank" rel="noreferrer" title={id} className="inline-flex min-h-11 min-w-0 max-w-full items-center break-all font-mono text-xs text-fg-2 underline decoration-line-strong underline-offset-4 hover:text-green">
       {shortenAccount(id, 24)}
     </a>
   );

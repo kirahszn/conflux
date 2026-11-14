@@ -59,6 +59,11 @@ export function NetworkGraph({
             {graph.edges.map((e) => (
               <EdgePath key={e.id} e={e} from={byId.get(e.from)} to={byId.get(e.to)} faded={!!near && !(near.has(e.from) && near.has(e.to))} />
             ))}
+            {!graph.nodes.some((n) => n.kind === "task") && graph.nodes.some((n) => n.kind === "agent") && (
+              <text x={graph.width - 24 - NODE_W / 2} y={graph.height / 2} textAnchor="middle" fill="#85918b" fontSize="13">
+                No tasks yet
+              </text>
+            )}
             {graph.nodes.map((n) => (
               <NodeBox
                 key={n.id}

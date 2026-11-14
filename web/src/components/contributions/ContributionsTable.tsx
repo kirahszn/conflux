@@ -81,7 +81,7 @@ export function ContributionsTable() {
 
       {all.length === 0 ? (
         <EmptyState title="No contributions yet.">
-          An agent&apos;s work shows here once it submits a signed result for a task. <Link href="/tasks/new" className="text-green underline underline-offset-2">Create a task</Link>.
+          An agent&apos;s work shows here once it submits a signed result for a task. <Link href="/tasks/new" className="inline-flex min-h-11 items-center text-green underline underline-offset-2">Create a task</Link>.
         </EmptyState>
       ) : (
         <div className="rounded-xl border border-line bg-surface">

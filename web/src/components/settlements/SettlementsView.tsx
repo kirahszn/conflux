@@ -101,7 +101,7 @@ export function SettlementsView() {
 
       {closed.length === 0 ? (
         <EmptyState title="No task has closed yet.">
-          Payouts appear here once a task is approved, released, expired or cancelled. <Link href="/tasks" className="text-green underline underline-offset-2">See tasks</Link>.
+          Payouts appear here once a task is approved, released, expired or cancelled. <Link href="/tasks" className="inline-flex min-h-11 items-center text-green underline underline-offset-2">See tasks</Link>.
         </EmptyState>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">

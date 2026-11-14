@@ -64,7 +64,7 @@ export function TasksTable() {
       ) : rows.length === 0 ? (
         <div className="p-4">
           <EmptyState title={filter === "active" ? "No active tasks." : filter === "finished" ? "No finished tasks yet." : "No tasks yet."}>
-            Create one with <Link href="/tasks/new" className="text-green underline underline-offset-2">New task</Link>.
+            Create one with <Link href="/tasks/new" className="inline-flex min-h-11 items-center text-green underline underline-offset-2">New task</Link>.
           </EmptyState>
         </div>
       ) : (
