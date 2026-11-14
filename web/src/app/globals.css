@@ -121,3 +121,33 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .skeleton, .live-dot { animation: none; }
 }
+
+/* Hero: deep NEAR teal with two light beams (green wedge from the left, cyan edge on the right). */
+.hero-beams {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(160deg, #004a36 0%, #00362a 35%, #022620 65%, #07100d 100%);
+}
+.hero-beams::before,
+.hero-beams::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-beams::before {
+  background:
+    linear-gradient(122deg, transparent 0%, rgb(0 236 151 / 0.06) 5%, rgb(0 236 151 / 0.4) 11.6%, rgb(150 255 210 / 0.8) 12%, rgb(0 236 151 / 0.2) 12.5%, transparent 15%);
+}
+.hero-beams::after {
+  background:
+    linear-gradient(196deg, transparent 22%, rgb(23 217 212 / 0.85) 22.4%, rgb(23 217 212 / 0.18) 23.5%, rgb(0 60 70 / 0.35) 40%, transparent 60%),
+    linear-gradient(180deg, transparent 70%, #07100d 100%);
+}
+/* Phones: keep the teal, drop the sharp beams so they never cross the headline. */
+@media (max-width: 1023px) {
+  .hero-beams::before { display: none; }
+  .hero-beams::after { background: radial-gradient(80% 50% at 100% 0%, rgb(23 217 212 / 0.22), transparent 70%), linear-gradient(180deg, transparent 70%, #07100d 100%); }
+}

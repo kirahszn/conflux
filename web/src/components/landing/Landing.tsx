@@ -43,7 +43,7 @@ export function Landing() {
   return (
     <>
       {/* 1. Hero */}
-      <section className="border-b border-line">
+      <section className="hero-beams border-b border-line">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:px-8">
           <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-soft px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-green">
