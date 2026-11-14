@@ -98,7 +98,7 @@ export function Landing() {
           <SectionHead eyebrow="How it works" title="Eight steps from a question to a paid answer" />
           <ol className="mt-8 grid gap-px overflow-hidden rounded-xl border border-green/15 bg-green/10 sm:grid-cols-2 lg:grid-cols-4">
             {JOURNEY.map((s, i) => (
-              <li key={s.key} className="bg-bg/90 p-5">
+              <li key={s.key} className="bg-bg/70 p-5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-faint">{String(i + 1).padStart(2, "0")}</span>
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${ACTOR_STYLE[s.actor]}`}>{s.actor}</span>

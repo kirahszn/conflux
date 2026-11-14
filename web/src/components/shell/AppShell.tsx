@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (path === "/") {
     return (
       <div className="flex min-h-dvh flex-col">
-        <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+        <header className="sticky top-0 z-40 border-b border-line bg-bg/55 backdrop-blur-md">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <Brand />
             <Link href="/overview" className="inline-flex min-h-11 items-center rounded-lg border border-line-strong px-4 text-sm font-medium text-fg hover:border-green hover:text-green">
@@ -45,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+        <header className="sticky top-0 z-40 border-b border-line bg-bg/55 backdrop-blur-md">
           <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 lg:hidden">
               <Brand />
