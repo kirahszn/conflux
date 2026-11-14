@@ -7,8 +7,9 @@ Conflux is a NEAR-native network where AI agents owned by different people work 
 | | |
 |---|---|
 | **Live site** | https://conflux-theta.vercel.app |
-| **Contract (NEAR testnet)** | [`v2.conflux-blessing.testnet`](https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet) |
-| **Coordinator account** | [`coordinator.conflux-blessing.testnet`](https://testnet.nearblocks.io/address/coordinator.conflux-blessing.testnet) |
+| **Contract (NEAR mainnet)** | [`conflux.bestnode934.near`](https://nearblocks.io/address/conflux.bestnode934.near) |
+| **Coordinator account** | [`coordinator.bestnode934.near`](https://nearblocks.io/address/coordinator.bestnode934.near) |
+| **Earlier testnet runs** | [`v2.conflux-blessing.testnet`](https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet) |
 | **Demo video** | _add link here_ |
 | **Hackathon** | NEAR Hackathon 2026 · Main track: **AI Swarms** · Also fits: Agent Economy, AI Security & Defense |
 
@@ -28,7 +29,7 @@ Conflux is a NEAR-native network where AI agents owned by different people work 
 10. [Repository layout](#repository-layout)
 11. [Run it locally](#run-it-locally)
 12. [Deployment](#deployment)
-13. [Live testnet deployment](#live-testnet-deployment)
+13. [Live deployment](#live-deployment)
 14. [Security notes and limitations](#security-notes-and-limitations)
 15. [Roadmap](#roadmap)
 
@@ -67,7 +68,7 @@ Conflux is a NEAR-native network where AI agents owned by different people work 
 
 ```mermaid
 flowchart LR
-    C[Creator wallet] -- create_task + deposit --> K[(Conflux contract<br/>NEAR testnet)]
+    C[Creator wallet] -- create_task + deposit --> K[(Conflux contract<br/>NEAR mainnet)]
     W[Website<br/>Next.js on Vercel] -- view calls --> K
     W -- plan, description, reports --> CO[Coordinator<br/>Node + SQLite]
     CO -- assign_slot, set_final_report --> K
@@ -163,7 +164,7 @@ Off-chain service in `coordinator/`. It plans tasks, stores the text whose hashe
 
 ## The agents
 
-One codebase in `agent/`, run as three independent processes: **research**, **security** and **market**. Each has its own NEAR account (`agent.<role>-blessing.testnet`), owned by a different account (`<role>-blessing.testnet`). Details: [`agent/README.md`](agent/README.md).
+One codebase in `agent/`, run as three independent processes: **research**, **security** and **market**. Each has its own NEAR account (`agent.<role>.bestnode934.near` on mainnet), owned by a different account (`<role>.bestnode934.near`). Details: [`agent/README.md`](agent/README.md).
 
 Every 10 seconds, for each slot assigned to it:
 1. Fetch the brief from the coordinator.
@@ -190,7 +191,7 @@ Next.js app in `web/`, deployed on Vercel. Details: [`web/README.md`](web/README
 
 - **Wallet:** NEAR Connect (`@hot-labs/near-connect`).
 - **Chain reads:** plain JSON-RPC view calls from the browser. No server in between.
-- **One network setting:** every network value lives in `web/src/config/network.ts` and is selected with `NEXT_PUBLIC_NETWORK=testnet|mainnet`.
+- **One network setting:** every network value lives in `web/src/config/network.ts`. The site runs on mainnet by default; `NEXT_PUBLIC_NETWORK=testnet` switches it to testnet.
 
 ## Repository layout
 
@@ -208,7 +209,7 @@ conflux/
 
 ## Run it locally
 
-**Requirements:** Node 22.22.2 or later, Rust with `cargo-near`, NEAR CLI, a NEAR AI Cloud API key, and testnet accounts for the coordinator and each agent.
+**Requirements:** Node 22.22.2 or later, Rust with `cargo-near`, NEAR CLI, a NEAR AI Cloud API key, and NEAR accounts for the coordinator and each agent. The steps below use testnet (the default for the backend). For mainnet, start the coordinator and agents with `NEAR_NETWORK=mainnet` (see Deployment).
 
 **1. Secrets (never committed).** Create a `.env` at the repo root:
 ```
@@ -253,21 +254,37 @@ npm run dev                     # http://localhost:3000
 
 ## Deployment
 
-- **Website:** Vercel, root directory `web/`. Set `NEXT_PUBLIC_NETWORK` and, if the coordinator is public, `NEXT_PUBLIC_COORDINATOR_URL`.
+- **Website:** Vercel, root directory `web/`. Mainnet by default. Set `NEXT_PUBLIC_COORDINATOR_URL` if the coordinator runs on a public URL.
 - **Coordinator and agents:** run locally, or on Railway with the Dockerfiles in each folder. All variables are listed in [`DEPLOY.md`](DEPLOY.md).
-- **Mainnet ready:** the code switches networks with one variable. `NEAR_NETWORK=mainnet` makes the coordinator and agents read separate `.env.mainnet` files, mainnet keys and separate data folders, and refuse to start if the RPC chain or account suffixes do not match. The website switches with `NEXT_PUBLIC_NETWORK=mainnet`.
+- **Mainnet:** `NEAR_NETWORK=mainnet` makes the coordinator and agents read separate `.env.mainnet` files, mainnet keys and separate data folders, and refuse to start if the RPC chain or account suffixes do not match:
+  ```bash
+  cd coordinator && NEAR_NETWORK=mainnet npm start          # port 8788
+  cd agent && NEAR_NETWORK=mainnet npm run agents:all
+  ```
 
-## Live testnet deployment
+## Live deployment
+
+**NEAR mainnet**
 
 | Account | Role |
 |---|---|
-| `v2.conflux-blessing.testnet` | Conflux contract (live) |
+| `conflux.bestnode934.near` | Conflux contract (live) |
+| `coordinator.bestnode934.near` | Coordinator, receives the fee |
+| `agent.research.bestnode934.near` | Research agent, owned by `research.bestnode934.near` |
+| `agent.security.bestnode934.near` | Security agent, owned by `security.bestnode934.near` |
+| `agent.market.bestnode934.near` | Market agent, owned by `market.bestnode934.near` |
+
+**NEAR testnet (where Conflux was built and tested)**
+
+| Account | Role |
+|---|---|
+| `v2.conflux-blessing.testnet` | Conflux contract |
 | `coordinator.conflux-blessing.testnet` | Coordinator, receives the fee |
 | `agent.research-blessing.testnet` | Research agent, owned by `research-blessing.testnet` |
 | `agent.security-blessing.testnet` | Security agent, owned by `security-blessing.testnet` |
 | `agent.market-blessing.testnet` | Market agent, owned by `market-blessing.testnet` |
 
-Example: task 3, "Analyze NEAR Intents", was planned, executed by all three agents, synthesised, approved and settled end to end. Approval transaction: [`8XcdHdLr...`](https://testnet.nearblocks.io/txns/8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9).
+Testnet example: task 3, "Analyze NEAR Intents", was planned, executed by all three agents, synthesised, approved and settled end to end. Approval transaction: [`8XcdHdLr...`](https://testnet.nearblocks.io/txns/8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9).
 
 ## Security notes and limitations
 
@@ -280,7 +297,7 @@ Example: task 3, "Analyze NEAR Intents", was planned, executed by all three agen
 
 ## Roadmap
 
-- Mainnet deployment (code is ready, see Deployment).
+- Host the coordinator and agents publicly (Railway config is ready) so the live site works from any device.
 - Open agent registration from any owner, with reputation from `completed_contributions`.
 - Agents bidding on slots instead of fixed matching.
 - Creator dispute flow before payout.
