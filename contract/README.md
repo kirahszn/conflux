@@ -1,63 +1,53 @@
-# Basic Auction Contract 
+# Conflux contract
 
-This directory contains a Rust contract that is used as part of the [Basic Auction Tutorial](https://docs.near.org/tutorials/auction/basic-auction).
+Rust smart contract (`near-sdk`, `cargo-near`) that holds a task's budget in escrow, fixes each role's reward before work starts, records every agent contribution and the final report hash, and pays each agent's owner plus the coordinator fee.
 
-The contract is a simple auction where you can place bids, view the highest bid, and claim the tokens at the end of the auction.
+- Rules and guarantees: [`../docs/CONTRACT.md`](../docs/CONTRACT.md) (source of truth, one rule per ID)
+- Code: [`src/lib.rs`](src/lib.rs)
+- Live on NEAR mainnet: [`conflux.bestnode934.near`](https://nearblocks.io/address/conflux.bestnode934.near)
+- Testnet: [`v2.conflux-blessing.testnet`](https://testnet.nearblocks.io/address/v2.conflux-blessing.testnet)
 
-This repo showcases the basic anatomy of a smart contract application on NEAR Protocol that showcases how to store data in a contract, how to update the state, and then how to read it.
-There are also unit tests, integration tests, and CI/CD pipelines preconfigured for your reference.
-
----
-
-## How to Build Locally?
-
-Install [`cargo-near`](https://github.com/near/cargo-near) and run:
-
-```bash
-cargo near build
-```
-
-## How to Test Locally?
+## Test
 
 ```bash
 cargo test
 ```
 
-## How to Deploy?
+- 115 unit tests in `src/lib.rs`, one or more per rule in `docs/CONTRACT.md`.
+- `tests/test_basics.rs` deploys the built contract to a local NEAR sandbox, initialises it with a coordinator and checks the result (needs network access to download the sandbox binary).
 
-Deployment is automated with GitHub Actions CI/CD pipeline.
-To deploy manually, install [`cargo-near`](https://github.com/near/cargo-near) and run:
-
-If you deploy for debugging purposes:
+## Build
 
 ```bash
-cargo near deploy build-non-reproducible-wasm
+cargo near build non-reproducible-wasm
 ```
 
-If you deploy production ready smart contract:
+Output: `target/near/contract.wasm`.
+
+## Deploy and initialise
 
 ```bash
-cargo near deploy build-reproducible-wasm
+cargo near deploy build-non-reproducible-wasm <contract-account> \
+  with-init-call init json-args '{"coordinator":"<coordinator-account>"}' \
+  prepaid-gas '30 Tgas' attached-deposit '0 NEAR' \
+  network-config testnet sign-with-keychain send
 ```
 
-## Initialize the contract
+## Read it without any setup
 
 ```bash
-# on Linux / Windows WSL
-TWO_MINUTES_FROM_NOW=$(date -d '+2 minutes' +%s000000000)
-# on MacOS
-TWO_MINUTES_FROM_NOW=$(date -v+2M +%s000000000)
-
-near contract call-function as-transaction '<CONTRACT_ACCOUNT_ID>' init json-args '{"end_time": "'$TWO_MINUTES_FROM_NOW'", "auctioneer": "<AUCTIONEER_ACCOUNT_ID>"}' prepaid-gas '30.0 Tgas' attached-deposit '0 NEAR'
+near contract call-function as-read-only conflux.bestnode934.near get_agents json-args '{}' network-config mainnet now
+near contract call-function as-read-only conflux.bestnode934.near get_task json-args '{"task_id":0}' network-config mainnet now
 ```
 
-## Useful Links
+## Methods
 
-- [cargo-near](https://github.com/near/cargo-near) - NEAR smart contract development toolkit for Rust
-- [near CLI](https://near.cli.rs) - Interact with NEAR blockchain from command line
-- [NEAR Rust SDK Documentation](https://docs.near.org/sdk/rust/introduction)
-- [NEAR Documentation](https://docs.near.org)
-- [NEAR StackOverflow](https://stackoverflow.com/questions/tagged/nearprotocol)
-- [NEAR Discord](https://near.chat)
-- [NEAR Telegram Developers Community Group](https://t.me/neardev)
-- NEAR DevHub: [Telegram](https://t.me/neardevhub), [Twitter](https://twitter.com/neardevhub)
+| Method | Caller |
+|---|---|
+| `init(coordinator)` | deployer, once |
+| `register_agent`, `set_agent_active` | agent owner |
+| `create_task`, `cancel_task`, `approve_task`, `expire_task` | task creator |
+| `assign_slot`, `set_final_report` | coordinator |
+| `submit_contribution` | assigned agent account |
+| `release_payment` | anyone, 24h after submission |
+| `get_agent`, `get_agents`, `get_task`, `get_tasks`, `get_coordinator` | views |

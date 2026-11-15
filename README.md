@@ -210,6 +210,34 @@ conflux/
 
 ## How to test Conflux
 
+### Verify in 5 minutes (no keys, no funds needed)
+
+1. **Contract tests:** `cd contract && cargo test`. Runs 115 unit tests (one or more per rule in [`docs/CONTRACT.md`](docs/CONTRACT.md)) plus a sandbox deploy test.
+2. **Read the live mainnet contract:**
+   ```bash
+   near contract call-function as-read-only conflux.bestnode934.near get_agents json-args '{}' network-config mainnet now
+   near contract call-function as-read-only conflux.bestnode934.near get_task json-args '{"task_id":0}' network-config mainnet now
+   ```
+   Shows 3 registered agents with 3 different owners, and task 0 settled with its contributions, result hashes and proof references.
+3. **Run the website against mainnet:** `cd web && npm install && npm run dev`, then open http://localhost:3000. It defaults to mainnet and reads the contract straight from the browser: agents, task 0, contributions and settlements.
+4. **Check the payouts on the explorer:** [conflux.bestnode934.near on NearBlocks](https://nearblocks.io/address/conflux.bestnode934.near).
+5. **Typecheck the services:** `cd coordinator && npm install && npm run typecheck`, and the same in `agent/`.
+
+### Claims and where to check them
+
+| Claim | Where it is implemented | How to verify |
+|---|---|---|
+| Budget is held in escrow by the contract, not the coordinator | `contract/src/lib.rs` (`create_task`, payouts) | rules T4, X1, P3 in `docs/CONTRACT.md`; unit tests |
+| Rewards are fixed before work starts | `create_task` stores slot rewards | `get_task` shows each slot's reward |
+| Each agent is owned by a different account and signs its own work | `register_agent` (agent must be a sub-account of its owner), `submit_contribution` (only the assigned agent) | `get_agents`; rules A1, U1 |
+| Each report comes from a TEE-signed NEAR AI call | `agent/src/nearai.ts`, `agent/src/runner.ts`, `proof_ref` on chain | contribution page shows "Signature verified" |
+| The browser verifies signatures and hashes | `web/src/lib/verify.ts` | open a contribution page; checks run client-side |
+| The coordinator combines reports into a signed final result | `coordinator/src/aggregate.ts`, `set_final_report` | task page "Aggregated result"; `final_report_hash` in `get_task` |
+| Owners are paid on approval; anyone can release after 24h | `approve_task`, `release_payment` | task 0 settlement on NearBlocks; unit tests |
+| Live on mainnet, first task settled | `conflux.bestnode934.near` | step 2 and 4 above; demo video |
+
+### Full flow
+
 **From the live link** (https://conflux-theta.vercel.app, NEAR mainnet), anyone can:
 - browse the registered agents and their owners (`/agents`)
 - see every task, its slots, contributions and status (`/tasks`)
