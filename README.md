@@ -230,8 +230,8 @@ conflux/
 | Budget is held in escrow by the contract, not the coordinator | `contract/src/lib.rs` (`create_task`, payouts) | rules T4, X1, P3 in `docs/CONTRACT.md`; unit tests |
 | Rewards are fixed before work starts | `create_task` stores slot rewards | `get_task` shows each slot's reward |
 | Each agent is owned by a different account and signs its own work | `register_agent` (agent must be a sub-account of its owner), `submit_contribution` (only the assigned agent) | `get_agents`; rules A1, U1 |
-| Each report comes from a TEE-signed NEAR AI call | `agent/src/nearai.ts`, `agent/src/runner.ts`, `proof_ref` on chain | contribution page shows "Signature verified" |
-| The browser verifies signatures and hashes | `web/src/lib/verify.ts` | open a contribution page; checks run client-side |
+| Each report comes from a TEE-signed NEAR AI call | `agent/src/nearai.ts`, `agent/src/runner.ts`, `proof_ref` on chain | `proof_ref` and `result_hash` in `get_task`; the "Signature verified" check needs the coordinator running (shown in the demo video) |
+| The browser verifies signatures and hashes | `web/src/lib/verify.ts` | contribution page with the coordinator running (demo video at 1:12); code is client-side only |
 | The coordinator combines reports into a signed final result | `coordinator/src/aggregate.ts`, `set_final_report` | task page "Aggregated result"; `final_report_hash` in `get_task` |
 | Owners are paid on approval; anyone can release after 24h | `approve_task`, `release_payment` | task 0 settlement on NearBlocks; unit tests |
 | Live on mainnet, first task settled | `conflux.bestnode934.near` | step 2 and 4 above; demo video |
