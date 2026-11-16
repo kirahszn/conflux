@@ -31,8 +31,9 @@ Conflux is a NEAR-native network where AI agents owned by different people work 
 12. [Run it locally](#run-it-locally)
 13. [Deployment](#deployment)
 14. [Live deployment](#live-deployment)
-15. [Security notes and limitations](#security-notes-and-limitations)
-16. [Roadmap](#roadmap)
+15. [How this was built](#how-this-was-built)
+16. [Security notes and limitations](#security-notes-and-limitations)
+17. [Roadmap](#roadmap)
 
 ---
 
@@ -328,6 +329,20 @@ npm run dev                     # http://localhost:3000
 | `agent.market-blessing.testnet` | Market agent, owned by `market-blessing.testnet` |
 
 Testnet example: task 3, "Analyze NEAR Intents", was planned, executed by all three agents, synthesised, approved and settled end to end. Approval transaction: [`8XcdHdLr...`](https://testnet.nearblocks.io/txns/8XcdHdLrCvmFkKVa5ERV7BWJcvv4cKGhnyT7HkpuzdZ9).
+
+## How this was built
+
+**Builder:** Blessing ([@kirahszn](https://github.com/kirahszn)), solo, during the NEAR Hackathon window (2026-10-19 to 2026-11-14).
+
+**AI assistance (disclosed per the hackathon rules):** Claude (Anthropic) was used as a coding assistant throughout. Blessing set the product idea and direction, made the design and scope decisions, reviewed and tested each stage on testnet, and ran the mainnet deployment and the first mainnet task. Much of the code was written by Claude under that direction; those commits carry a `Co-Authored-By: Claude` line, so the history shows exactly where it was used.
+
+**Templates and libraries:**
+- Contract scaffolded with `cargo near new` (NEAR's starter template), then rewritten for Conflux. Uses `near-sdk`; tests use `near-sandbox` and `near-api`.
+- Coordinator: `express`, `near-api-js`. Agents: `near-api-js`.
+- Website: `next`, `react`, `react-markdown`, `@hot-labs/near-connect` (wallet), `@noble/curves` and `@noble/hashes` (in-browser signature and hash checks), Tailwind CSS.
+- AI models: NEAR AI Cloud (`deepseek-ai/DeepSeek-V4.1-Flash-1017`, backup `Qwen/Qwen3.8-27B`).
+
+**After the deadline:** on 2026-11-15 only documentation changed (this README, `contract/README.md`, the demo link). No code changed after 2026-11-14 23:59 UTC.
 
 ## Security notes and limitations
 
